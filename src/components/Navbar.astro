@@ -1,0 +1,22 @@
+---
+import ThemeToggle from "./ThemeToggle";
+---
+
+<nav class="sticky top-0 z-50 bg-secondary-2 dark:bg-primary-hard">
+  <header class="relative px-4 flex w-full h-12 justify-between">
+    <div class="flex h-full items-center gap-x-6">
+      <a class="font-bold text-primary dark:text-secondary" href="/">gevorah.dev</a>
+    </div>
+    <button class="sm:hidden flex h-full items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+    <div class="hidden sm:flex h-full items-center gap-x-6">
+      <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" href="#Home">Home</a>
+      <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" href="#Projects">Projects</a>
+      <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" href="#About">About</a>
+      <ThemeToggle client:load />
+    </div>
+  </header>
+</nav>

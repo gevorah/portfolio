@@ -1,13 +1,39 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro'
 ---
 
 <Layout title="gevorah">
+  <Navbar />
 	<main>
-		<h1>Jhon Ijaji</h1>
-    <h2>Software Engineer</h2>
-		<p>
-			Over a year of experience in web development. Passionate about crafting impactful solutions.
-		</p>
+    <section id="Home" class="flex flex-col items-center justify-center w-full h-[calc(100vh-3.5rem)] max-md:px-6 bg-secondary-soft dark:bg-primary-soft rounded-t-xl">
+      <div class="flex flex-col w-full max-w-3xl gap-3 p-6 bg-secondary dark:bg-primary rounded-lg shadow-lg font-mono">
+        <div class="font-light text-sm sm:text-base inline-block">
+          <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
+          in
+          <span class="font-bold text-dim-blue dark:text-normal-blue">~</span>
+          <span class="font-bold text-dim-green dark:text-normal-green">&#x276F;</span>
+          <span class="font-bold">me</span>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-9">
+          <img src="/icon.png" alt="gevorah" class="w-48"/>
+          <div class="flex flex-col justify-center gap-3">
+            <h1 class="text-3xl sm:text-6xl font-bold">Jhon Ijaji</h1>
+            <h2 class="text-xl sm:text-3xl font-medium">Software Engineer</h2>
+            <p class="text-sm sm:text-base">
+              Over a year of experience in web development. Passionate about crafting impactful solutions.
+            </p>
+          </div>
+        </div>
+        <div class="font-light text-sm sm:text-base inline-block">
+          <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
+          in
+          <span class="font-bold text-dim-blue dark:text-normal-blue">~</span>
+          <span class="font-bold text-dim-yellow dark:text-normal-yellow">took 1s</span>
+          <span class="font-bold text-dim-green dark:text-normal-green">&#x276F;</span>
+          <span class="font-bold animate-ping">&block;</span>
+        </div>
+      </div>
+    </section>
 	</main>
 </Layout>
