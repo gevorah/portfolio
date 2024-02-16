@@ -1,0 +1,16 @@
+---
+import { Image } from 'astro:assets';
+import avatar from '@/assets/avatar.png';
+---
+
+<div class="flex flex-col sm:flex-row gap-3 sm:gap-9 sm:items-center">
+  <Image src={avatar} alt="gevorah avatar" />
+  <div class="flex flex-col justify-center gap-3">
+    <h3 class="text-lg sm:text-xl font-medium">Hello, world! I'm</h3>
+    <h1 class="text-3xl sm:text-5xl font-bold">Jhon Ijaji</h1>
+    <h2 class="text-xl sm:text-2xl font-medium">Software Engineer</h2>
+    <p class="text-sm sm:text-base font-light">
+      A self-taught developer with interest in Frontend Development.
+    </p>
+  </div>
+</div>

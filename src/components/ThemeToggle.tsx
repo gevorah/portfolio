@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Button } from './ui/Button';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const handleClick = () => {
-    console.log(theme);
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
@@ -19,10 +19,7 @@ export default function ThemeToggle() {
   }, [theme]);
 
   return (
-    <button
-      className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 hover:bg-secondary-1 dark:hover:bg-primary-1 hover:text-primary-1 dark:hover:text-secondary-1 h-9 py-2 w-9 px-0"
-      onClick={handleClick}
-    >
+    <Button variant="outlined" size="icon" onClick={handleClick}>
       {theme === 'dark' ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -54,6 +51,6 @@ export default function ThemeToggle() {
           />
         </svg>
       )}
-    </button>
+    </Button>
   );
 }

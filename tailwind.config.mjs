@@ -58,7 +58,7 @@ export default {
           blue: '#076678',
           purple: '#8f3f71',
           aqua: '#427b58',
-          white: '#7c6f64',
+          gray: '#7c6f64',
           orange: '#af3a03'
         }
       }

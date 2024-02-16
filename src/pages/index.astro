@@ -1,39 +1,60 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Navbar from '../components/Navbar.astro'
+import Layout from '@/layouts/Layout.astro';
+import Navbar from '@/components/Navbar.astro';
+
+import Greet from '@/components/Greet.astro';
+
+import ProjectCard from '@/components/ProjectCard.astro';
+import astronaut from '@/assets/astronaut_bg.png';
 ---
 
 <Layout title="gevorah">
   <Navbar />
 	<main>
-    <section id="Home" class="flex flex-col items-center justify-center w-full h-[calc(100vh-3.5rem)] max-md:px-6 bg-secondary-soft dark:bg-primary-soft rounded-t-xl">
+    <section id="Home" class="flex flex-col items-center justify-center w-full h-[calc(100vh-3.5rem)] max-md:p-6 p-9 bg-secondary-soft dark:bg-primary-soft rounded-t-xl">
       <div class="flex flex-col w-full max-w-3xl gap-3 p-6 bg-secondary dark:bg-primary rounded-lg shadow-lg font-mono">
         <div class="font-light text-sm sm:text-base inline-block">
           <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
           in
           <span class="font-bold text-dim-blue dark:text-normal-blue">~</span>
           <span class="font-bold text-dim-green dark:text-normal-green">&#x276F;</span>
-          <span class="font-bold">me</span>
+          <span class="font-bold">greet</span>
         </div>
-        <div class="flex flex-col sm:flex-row gap-9">
-          <img src="/icon.png" alt="gevorah" class="w-48"/>
-          <div class="flex flex-col justify-center gap-3">
-            <h1 class="text-3xl sm:text-6xl font-bold">Jhon Ijaji</h1>
-            <h2 class="text-xl sm:text-3xl font-medium">Software Engineer</h2>
-            <p class="text-sm sm:text-base">
-              Over a year of experience in web development. Passionate about crafting impactful solutions.
-            </p>
-          </div>
-        </div>
+        <Greet />
         <div class="font-light text-sm sm:text-base inline-block">
           <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
           in
           <span class="font-bold text-dim-blue dark:text-normal-blue">~</span>
           <span class="font-bold text-dim-yellow dark:text-normal-yellow">took 1s</span>
           <span class="font-bold text-dim-green dark:text-normal-green">&#x276F;</span>
-          <span class="font-bold animate-ping">&block;</span>
+          {/*<input class="hidden w-fit bg-transparent caret-transparent border-none focus-visible:outline-none" />*/}
+          <span class="animate-ping">&block;</span>
+        </div>
+      </div>
+    </section>
+    <section id="AboutMe" class="flex flex-col items-center justify-center w-full px-6 py-9 md:p-16">
+      <div class="flex flex-col w-full max-w-5xl gap-6">
+        <h2 class="text-xl sm:text-3xl font-bold">About Me</h2>
+        <p class="text-sm sm:text-base">
+          I'm a Software Engineer and Frontend Developer with over a year of experience 
+          in crafting innovative solutions. Passionate about the dynamic realm of web development, 
+          I have explored various leading software development tools. My innate curiosity and 
+          quick adaptability ensure I stay at the forefront of industry trends and 
+          technologies. I seamlessly integrate into collaborative teams, navigating diverse 
+          challenges with poise to contribute to the success of projects.
+        </p>
+      </div>
+    </section>
+    <section id="Projects" class="flex flex-col items-center justify-center w-full px-6 py-9 md:p-16 bg-secondary-soft dark:bg-primary-soft">
+      <div class="flex flex-col w-full max-w-5xl gap-6">
+        <h2 class="text-xl sm:text-3xl font-bold">Projects</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-9 md:gap-16">
+          <ProjectCard image={astronaut.src} title='Portfolio' tags={['Astro', 'React', 'Tailwind CSS']} description='Description' />
+          <ProjectCard image={astronaut.src} title='Nintendo Web' tags={['Astro', 'React', 'Tailwind CSS']} description='Description' />
+          <ProjectCard image={astronaut.src} title='Other' tags={['Astro']} description='Description' />
         </div>
       </div>
     </section>
 	</main>
+  <footer class="pb-12"></footer>
 </Layout>
