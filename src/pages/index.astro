@@ -6,12 +6,14 @@ import Greet from '@/components/Greet.astro';
 
 import ProjectCard from '@/components/ProjectCard.astro';
 import astronaut from '@/assets/astronaut_bg.png';
+
+import Projects from '@/components/Projects'
 ---
 
 <Layout title="gevorah">
   <Navbar />
 	<main>
-    <section id="Home" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9 rounded-t-xl">
+    <section class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9 rounded-t-xl">
       <div class="flex flex-col w-full max-w-5xl min-h-96 gap-3 p-6 bg-secondary dark:bg-primary rounded-xl shadow-lg font-mono">
         <div class="font-light text-sm sm:text-base inline-block">
           <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
@@ -32,7 +34,7 @@ import astronaut from '@/assets/astronaut_bg.png';
         </div>
       </div>
     </section>
-    <section id="AboutMe" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9">
+    <section id="about-me" data-section="about-me" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9">
       <div class="flex flex-col w-full max-w-5xl gap-6">
         <h2 class="text-xl sm:text-3xl font-bold">About Me</h2>
         <p class="text-sm sm:text-base">
@@ -45,7 +47,7 @@ import astronaut from '@/assets/astronaut_bg.png';
         </p>
       </div>
     </section>
-    <section id="Projects" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9">
+    <section id="projects" data-section="projects" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9">
       <div class="flex flex-col w-full max-w-5xl gap-6">
         <h2 class="text-xl sm:text-3xl font-bold">Projects</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-9 md:gap-16">
@@ -68,6 +70,7 @@ import astronaut from '@/assets/astronaut_bg.png';
         </div>
       </div>
     </section>
+    <Projects client:load />
 	</main>
   <footer class="pb-12"></footer>
 </Layout>
