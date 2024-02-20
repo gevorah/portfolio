@@ -4,11 +4,11 @@ import { Button, buttonVariants } from "./ui/Button";
 import GitHubIcon from '@/icons/GitHub.astro';
 import LinkedInIcon from '@/icons/LinkedIn.astro';
 
-const linkClass = buttonVariants({variant: "outlined", size: "icon"}) 
+const linkClass = buttonVariants({variant: "outlined", size: "icon"})
 ---
 
-<nav class="sticky top-0 z-50 bg-secondary-2 dark:bg-primary-hard">
-  <header class="relative flex justify-between items-center w-full h-12 px-1.5 md:px-4">
+<header class="sticky top-0 z-50 bg-secondary-2 dark:bg-primary-hard border-b border-b-primary-hard dark:border-b-secondary-2">
+  <nav class="relative flex justify-between items-center w-full h-16 px-1.5 md:px-4">
     <div class="md:hidden">
       <Button variant="outlined" size="icon" className="flex md:hidden">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -34,5 +34,5 @@ const linkClass = buttonVariants({variant: "outlined", size: "icon"})
       </a>
       <ThemeToggle client:load />
     </div>
-  </header>
-</nav>
+  </nav>
+</header>
