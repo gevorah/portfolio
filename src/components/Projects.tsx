@@ -77,7 +77,7 @@ export default function Projects() {
                     <li key={project.id} className="h-6">
                       <button
                         onClick={() => handleSelect(project.id)}
-                        className="border-b w-fit hover:tracking-wide"
+                        className="text-secondary-3 hover:text-secondary-1 hover:tracking-wide relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
                       >
                         {project.title}
                       </button>
@@ -107,22 +107,22 @@ function Project({ title, description, links }: any) {
       <div className="relative mt-6 pl-6 before:absolute before:inset-0 before:w-[2px] before:h-full before:bg-[linear-gradient(to_bottom,purple,orange)]">
         <p>{description}</p>
         {links && links.length != 0 && (
-          <div className="flex gap-5 mt-5">
+          <div className="flex gap-6 mt-5">
             <a
               href=""
-              className="relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
+              className="text-secondary-3 hover:text-secondary-1 hover:tracking-wide relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
             >
               View Site
             </a>
             <a
               href=""
-              className="relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
+              className="text-secondary-3 hover:text-secondary-1 hover:tracking-wide relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
             >
               Github
             </a>
             <a
               href=""
-              className="relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
+              className="text-secondary-3 hover:text-secondary-1 hover:tracking-wide relative pb-1 before:absolute before:bottom-0 before:left-0 before:w-full before:h-[2px] before:bg-[linear-gradient(to_right,purple,orange)]"
             >
               NPM
             </a>
