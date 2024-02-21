@@ -18,7 +18,9 @@ const { image, title, tags, description, github, link } = Astro.props
 ---
 
 <article id="project-card" class="bg-secondary dark:bg-primary rounded-xl shadow-lg hover:scale-105">
-  <img src={image} alt="" class="rounded-t-xl" />
+  <div class="rounded-t-xl h-72 overflow-hidden">
+    <img src={image} alt="" />
+  </div>
   <div class="p-4">
     <div class="flex flex-row items-center justify-between">
       <h1 class="text-lg sm:text-2xl font-bold">{title}</h1>
