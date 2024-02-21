@@ -1,0 +1,31 @@
+---
+import Section from '@/components/Section.astro'
+import ExperienceItem from "./ExperienceItem.astro"
+
+const EXPERIENCIE = [
+  {
+    title: "Software Engineer (Intern)",
+    date: "July 2023 - January 2024",
+    company: "Encora",
+    description: "Conducted research and documented Robotic Process Automation (RPA) insights."
+  },
+  {
+    title: "Software Developer",
+    date: "April 2022 - June 2023",
+    company: "Icesi",
+    description: "Contributed to the development of a web project using Spring and React, aimed at managing lunches for scholarship students, optimizing accessibility and user experience.",
+  },
+]
+---
+
+<Section id='experience' title='Experience'>
+  <ol>
+    {
+      EXPERIENCIE.map((experiencie) => (
+        <li>
+          <ExperienceItem {...experiencie} />
+        </li>
+      ))
+    }
+  </ol>
+</Section>

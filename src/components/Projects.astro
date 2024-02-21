@@ -1,0 +1,23 @@
+---
+import Section from '@/components/Section.astro'
+import ProjectCard from '@/components/ProjectCard.astro';
+
+import astronaut from '@/assets/astronaut_bg.png';
+
+const PROJECTS = [
+  {
+    title: 'Portfolio',
+    description: 'My personal portfolio showcasing my skills, projects, and passion for web development.',
+    image: astronaut.src,
+    tags: ['Astro', 'React', 'Tailwind CSS'],
+    github:'https://github.com/gevorah/portfolio',
+    link: 'https://gevorah.vercel.app/'
+  }
+]
+---
+
+<Section id="projects" title='Projects'>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-9 md:gap-16">
+    {PROJECTS.map(project => <ProjectCard {...project} />)}
+  </div>
+</Section>

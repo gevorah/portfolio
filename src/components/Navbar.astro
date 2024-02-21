@@ -1,10 +1,33 @@
 ---
 import ThemeToggle from "./ThemeToggle";
-import { Button, buttonVariants } from "./ui/Button";
+import { Button, buttonVariants } from "./Button";
 import GitHubIcon from '@/icons/GitHub.astro';
 import LinkedInIcon from '@/icons/LinkedIn.astro';
 
 const linkClass = buttonVariants({variant: "outlined", size: "icon"})
+
+const navItems = [
+  {
+    title: "About me",
+    label: "about-me",
+    url: "/#about-me"
+  },
+  {
+    title: "Skills",
+    label: "skills",
+    url: "/#skills"
+  },
+  {
+    title: "Experience",
+    label: "experience",
+    url: "/#experience"
+  },
+  {
+    title: "Projects",
+    label: "projects",
+    url: "/#projects"
+  }
+]
 ---
 
 <header class="sticky top-0 z-50 bg-secondary-2 dark:bg-primary-hard border-b border-b-primary-hard dark:border-b-secondary-2">
@@ -20,9 +43,7 @@ const linkClass = buttonVariants({variant: "outlined", size: "icon"})
     <div class="flex flex-row justify-center items-center gap-x-6">
       <a class="font-bold text-primary dark:text-secondary" href="/">gevorah.dev</a>
       <div class="hidden md:flex items-center gap-x-6">
-        <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" href="#Home">Home</a>
-        <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" href="#AboutMe">About</a>
-        <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" href="#Projects">Projects</a>
+        {navItems.map(item => <a class="text-base text-primary-3 hover:text-primary dark:text-secondary-3 dark:hover:text-secondary transition-colors" aria-label={item.label} href={item.url} >{item.title}</a>)}
       </div>
     </div>
     <div class="flex h-full items-center">

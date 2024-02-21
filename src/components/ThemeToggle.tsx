@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button } from './ui/Button';
+import { Button } from './Button';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -54,3 +54,4 @@ export default function ThemeToggle() {
     </Button>
   );
 }
+
