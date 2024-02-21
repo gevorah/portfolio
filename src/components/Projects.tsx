@@ -16,14 +16,14 @@ const projects = [
     id: 1,
     title: 'Portfolio',
     description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean quis libero ullamcorper, congue sapien sed, vehicula risus. Mauris fringilla, odio vel vehicula consectetur, mauris sem imperdiet leo, ac elementum ipsum elit eget leo. Cras ut viverra eros. Proin porttitorenim nec metus accumsan condimentum. Curabitur id ultricies odio. Vivamus in dolor facilisis, finibus purus finibus, ultricies erat.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean quis libero ullamcorper, congue sapien sed, vehicula risus. Mauris fringilla, odio vel vehicula consectetur, mauris sem imperdiet leo, ac elementum ipsum elit eget leo. Cras ut viverra eros. ',
     links: ['']
   },
   {
     id: 2,
     title: 'Nintendo',
     description:
-      'Aenean quis libero ullamcorper, congue sapien sed, vehicula risus. Mauris fringilla, odio vel vehicula consectetur, mauris sem imperdiet leo, ac elementum ipsum elit eget leo. Cras ut viverra eros. Proin porttitorenim nec metus accumsan condimentum. Curabitur id ultricies odio. Vivamus in dolor facilisis, finibus purus finibus, ultricies erat.',
+      'Aenean quis libero ullamcorper, congue sapien sed, vehicula risus. Mauris fringilla, odio vel vehicula consectetur, mauris sem imperdiet leo, ac elementum ipsum elit eget leo. Cras ut viverra eros. Proin porttitorenim nec metus accumsan condimentum.',
     links: ['']
   },
   {
@@ -43,8 +43,7 @@ const projects = [
   {
     id: 5,
     title: 'Assistant',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean quis libero ullamcorper, congue sapien sed, vehicula risus. Mauris fringilla, odio vel vehicula consectetur, mauris sem imperdiet leo, ac elementum ipsum elit eget leo. Cras ut viverra eros. Proin porttitorenim nec metus accumsan condimentum. Curabitur id ultricies odio. Vivamus in dolor facilisis, finibus purus finibus, ultricies erat.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     links: ['']
   }
 ];
@@ -62,9 +61,9 @@ export default function Projects() {
       data-section="home"
       className="relative flex flex-col items-center justify-center w-full px-6 md:px-16 mt-32"
     >
-      <div className="relative max-w-5xl max-h-[640px] w-full p-9">
+      <div className="relative max-w-5xl w-full p-9">
         <div className="absolute top-0 left-0 bg-[linear-gradient(to_right,purple,orange)] h-60 w-60 [clip-path:polygon(0%_0%,0%_100%,10%_80%,10%_10%,80%_10%,100%_0%);]"></div>
-        <div className="my-32 flex w-full gap-6 items-center border-secondary p-9">
+        <div className="my-32 flex flex-col md:flex-row w-full gap-6 items-center border-secondary p-9">
           <AnimatePresence initial={false} mode="popLayout">
             <Project {...projects.find(project => project.id === selected)} />
           </AnimatePresence>
