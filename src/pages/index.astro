@@ -1,76 +1,14 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import Navbar from '@/components/Navbar.astro';
-
-import Greet from '@/components/Greet.astro';
-
-import ProjectCard from '@/components/ProjectCard.astro';
-import astronaut from '@/assets/astronaut_bg.png';
-
-import Projects from '@/components/Projects'
+import Experience from '@/components/Experience.astro';
+import Hero from '@/components/Hero.astro';
+import Stack from '@/components/Stack.astro';
 ---
 
 <Layout title="gevorah">
-  <Navbar />
-	<main>
-    <section class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9 rounded-t-xl">
-      <div class="flex flex-col w-full max-w-5xl min-h-96 gap-3 p-6 bg-secondary dark:bg-primary rounded-xl shadow-lg font-mono">
-        <div class="font-light text-sm sm:text-base inline-block">
-          <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
-          in
-          <span class="font-bold text-dim-blue dark:text-normal-blue">~</span>
-          <span class="font-bold text-dim-green dark:text-normal-green">&#x276F;</span>
-          <span class="font-bold">greet</span>
-        </div>
-        <Greet />
-        <div class="font-light text-sm sm:text-base inline-block">
-          <span class="text-dim-purple dark:text-normal-purple font-bold">gevorah</span>
-          in
-          <span class="font-bold text-dim-blue dark:text-normal-blue">~</span>
-          <span class="font-bold text-dim-yellow dark:text-normal-yellow">took 1s</span>
-          <span class="font-bold text-dim-green dark:text-normal-green">&#x276F;</span>
-          {/*<input class="hidden w-fit bg-transparent caret-transparent border-none focus-visible:outline-none" />*/}
-          <span class="animate-ping">&block;</span>
-        </div>
-      </div>
-    </section>
-    <section id="about-me" data-section="about-me" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9">
-      <div class="flex flex-col w-full max-w-5xl gap-6">
-        <h2 class="text-xl sm:text-3xl font-bold">About Me</h2>
-        <p class="text-sm sm:text-base">
-          I'm a Software Engineer and Frontend Developer with over a year of experience 
-          in crafting innovative solutions. Passionate about the dynamic realm of web development, 
-          I have explored various leading software development tools. My innate curiosity and 
-          quick adaptability ensure I stay at the forefront of industry trends and 
-          technologies. I seamlessly integrate into collaborative teams, navigating diverse 
-          challenges with poise to contribute to the success of projects.
-        </p>
-      </div>
-    </section>
-    <section id="projects" data-section="projects" class="flex flex-col items-center justify-center w-full px-6 md:px-16 mt-9">
-      <div class="flex flex-col w-full max-w-5xl gap-6">
-        <h2 class="text-xl sm:text-3xl font-bold">Projects</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-9 md:gap-16">
-          <ProjectCard 
-            image={astronaut.src}
-            title='Portfolio'
-            tags={['Astro', 'React', 'Tailwind CSS']}
-            description='Description'
-            github='https://github.com/gevorah/portfolio',
-            link=''
-          />
-          <ProjectCard 
-            image={astronaut.src}
-            title='Nintendo Web'
-            tags={['Astro', 'React', 'Tailwind CSS']}
-            description='In progress...'
-            github='',
-            link=''
-          />
-        </div>
-      </div>
-    </section>
-    <Projects client:load />
-	</main>
-  <footer class="pb-12"></footer>
+  <main>
+    <Hero />
+    <Experience />
+    <Stack />
+  </main>
 </Layout>
