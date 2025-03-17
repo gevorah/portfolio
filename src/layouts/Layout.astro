@@ -1,9 +1,7 @@
 ---
-import '@fontsource-variable/jetbrains-mono';
-
 interface Props {
-  title: string
-  description?: string
+  title: string;
+  description?: string;
 }
 
 const { title, description = '' } = Astro.props;
@@ -17,22 +15,30 @@ const { title, description = '' } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/png" href="/icon.png" />
     <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <slot />
+    <div class="mx-auto max-w-screen-lg">
+      <slot />
+    </div>
   </body>
 </html>
 <style is:global>
   html {
-    color-scheme: light;
-    background: #f9f5d7;
-    color: #3c3836;
-    scroll-behavior: smooth;
-  }
-  html.dark {
+    @apply bg-background text-foreground;
     color-scheme: dark;
-    background: #1d2021;
-    color: #ebdbb2;
+    scroll-behavior: smooth;
+    font-feature-settings:
+      'ss01' 1,
+      'ss02' 1,
+      'ss03' 1,
+      'ss04' 1,
+      'case' 1;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -40,22 +46,3 @@ const { title, description = '' } = Astro.props;
     }
   }
 </style>
-<script is:inline>
-  const getThemePreference = () => {
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-      return localStorage.getItem('theme');
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
-
-  const isDarkMode = getThemePreference() === 'dark';
-  document.documentElement.classList[isDarkMode ? 'add' : 'remove']('dark');
- 
-  if (typeof localStorage !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  }
-</script>
