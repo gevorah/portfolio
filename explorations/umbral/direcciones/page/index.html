@@ -1,0 +1,182 @@
+<title>Umbral · direcciones visuales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Lámina de dirección de arte: fondo de espacio fijo, una sola apariencia oscura deliberada. Imagen grande primero, texto corto después. */
+:root {
+  --bg: #0e0c13;
+  --panel: #15131c;
+  --line: #2a2735;
+  --fg: #ece8f2;
+  --muted: #a7a2b8;
+  --a: #b9a8ff;
+  --b: #8fb0ff;
+  --c: #7fd6ff;
+  --display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--display); font-size: 17px; line-height: 1.6; margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 24px; padding-block: 56px 96px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.05; }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.6rem); line-height: 1.08; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.lead { font-size: 1.15rem; max-width: 64ch; }
+.muted { color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 22px; padding-block: 56px; border-top: 1px solid var(--line); }
+header.top { display: flex; flex-direction: column; gap: 18px; padding-bottom: 40px; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; border-radius: 4px; background: #000; }
+figcaption { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 820px) { .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); } }
+.tag { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.t-a { color: var(--a); } .t-b { color: var(--b); } .t-c { color: var(--c); }
+.note { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.sw { display: flex; flex-direction: column; gap: 4px; width: 84px; }
+.sw span:first-child { height: 34px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.08); }
+.sw span:last-child { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); line-height: 1.3; }
+ul.plain { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 0.95rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.dots { font-family: var(--mono); letter-spacing: 0.08em; white-space: nowrap; }
+td small { display: block; color: var(--muted); font-size: 0.82rem; line-height: 1.4; margin-top: 2px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">gevorah · Small Worlds · Umbral · dirección visual</span>
+    <h1>Umbral, tres direcciones visuales</h1>
+    <p class="lead">Un mismo concepto (un planeta oceánico, misterioso y atmosférico) explorado de tres maneras. Esta vez se prioriza la imagen: silueta, composición, paleta y materiales. No hay mapas ni explicaciones geológicas largas.</p>
+    <p class="muted">Lo que conservo de la ronda del Mar Suspendido es lo que funcionaba en el Gancho: una forma enorme y curva sobre el horizonte, vista a contraluz sobre un océano de tinta. Lo que dejo atrás: que parezca una pieza añadida, el ojo como motivo geográfico (el avatar queda fuera del diseño del planeta) y la obligación de explicar toda la geografía por el fenómeno. Son ilustraciones de dirección de arte, no modelos.</p>
+  </header>
+
+  <!-- A -->
+  <section id="rompiente">
+    <span class="tag t-a">A · Monumentalidad natural</span>
+    <h2>La Rompiente</h2>
+    <p class="lead">El Gancho convertido en geografía. Una isla de basalto cuyo extremo el mar ha socavado durante siglos hasta dejarlo en voladizo, como una ola de roca a punto de romper. No está pegada al planeta: los estratos son horizontales y la forma está tallada a través de ellos. Comparte roca con la isla, tiene un arco atravesado en la base y farallones de lo que ya cayó, y el agua cae del labio.</p>
+    <figure><img src="img/a-rompiente-clave.jpg" alt="Al anochecer, sobre un mar de tinta, un enorme voladizo de basalto con estratos horizontales se curva sobre el agua como una ola de piedra; cascadas finas caen del labio; un arco atravesado en la base deja ver el ocaso; farallones a la izquierda y una luna pálida" loading="lazy"><figcaption>Composición clave: la Rompiente al anochecer, desde el mar</figcaption></figure>
+    <div class="grid2">
+      <figure><img src="img/a-rompiente-orbita.jpg" alt="Planeta azul tinta con atmósfera violeta; una isla larga abraza el limbo y en su extremo la cresta rompe el contorno como el labio de una ola" loading="lazy"><figcaption>Vista orbital: la isla corre pegada al limbo y la cresta rompe el contorno</figcaption></figure>
+      <div class="note">
+        <h3>Paleta y materiales</h3>
+        <div class="swatches">
+          <div class="sw"><span style="background:#0b1029"></span><span>tinta #0b1029</span></div>
+          <div class="sw"><span style="background:#1b2150"></span><span>océano #1b2150</span></div>
+          <div class="sw"><span style="background:#2a2539"></span><span>basalto #2a2539</span></div>
+          <div class="sw"><span style="background:#9d93b8"></span><span>sal #9d93b8</span></div>
+          <div class="sw"><span style="background:#d8c9ff"></span><span>borde #d8c9ff</span></div>
+          <div class="sw"><span style="background:#f0b48c"></span><span>ocaso #f0b48c</span></div>
+        </div>
+        <p class="muted">Basalto oscuro en capas, con vetas de sal; espuma; neblina violeta en la base que da escala. El único cálido es la línea del ocaso en el filo. Referencias de principio: los voladizos y arcos marinos socavados por el oleaje, los farallones de las costas atlánticas y la erosión en la línea de marea.</p>
+        <h3>Qué despierta curiosidad</h3>
+        <p class="muted">Pasar por debajo del voladizo. Bajo esa forma, el océano suspendido encaja de manera natural: el agua levantada quedaría enmarcada por la roca.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section id="huso">
+    <span class="tag t-b">B · Silueta sin formaciones verticales</span>
+    <h2>El Huso</h2>
+    <p class="lead">Umbral gira tan rápido que se ha achatado como una lente. El mar se acumula en el ecuador, donde el planeta es más ancho, y deja al aire dos tierras polares de roca rosada y hielo. La silueta es la forma del planeta. Desde la costa polar el mar parece subir: el horizonte se curva hacia arriba como el borde de un cuenco, y las estrellas dejan estela porque el cielo gira deprisa.</p>
+    <figure><img src="img/b-huso-clave.jpg" alt="Desde una playa rosada con cantos rodados, el mar azul cobalto sube hacia un horizonte curvado hacia arriba en los extremos, con islas colgadas en la pendiente; estrellas con estela y una luna" loading="lazy"><figcaption>Composición clave: el mar cuesta arriba, desde la costa polar</figcaption></figure>
+    <div class="grid2">
+      <figure><img src="img/b-huso-orbita.jpg" alt="Planeta ovalado e inclinado con una banda ecuatorial de océano azul, costas de arena rosada y casquetes polares blancos" loading="lazy"><figcaption>Vista orbital: un cuerpo achatado con un cinturón de mar</figcaption></figure>
+      <div class="note">
+        <h3>Paleta y materiales</h3>
+        <div class="swatches">
+          <div class="sw"><span style="background:#1f428e"></span><span>cobalto #1f428e</span></div>
+          <div class="sw"><span style="background:#7c9ee6"></span><span>oleaje #7c9ee6</span></div>
+          <div class="sw"><span style="background:#c9aba3"></span><span>arena rosa #c9aba3</span></div>
+          <div class="sw"><span style="background:#8f7177"></span><span>roca #8f7177</span></div>
+          <div class="sw"><span style="background:#eef0f4"></span><span>hielo #eef0f4</span></div>
+          <div class="sw"><span style="background:#2d3168"></span><span>cielo #2d3168</span></div>
+        </div>
+        <p class="muted">Arena rosada, cantos redondeados por un oleaje constante, hielo varado y un mar cobalto con oleaje muy largo. Referencias de principio: los planetas enanos achatados por la rotación (Haumea), las playas polares y el mar de fondo oceánico.</p>
+        <h3>Qué despierta curiosidad</h3>
+        <p class="muted">Un mar que está más alto que tú. Las islas cuelgan en la pendiente, y caminar hacia el ecuador significa subir por el agua.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section id="luna">
+    <span class="tag t-c">C · Mayor libertad</span>
+    <h2>La Luna de Agua</h2>
+    <p class="lead">Cuestiona la premisa: ¿y si el mar ya no está en el planeta? Umbral fue oceánico, pero su mar se levantó entero y hoy orbita como una luna de agua, con su fauna dentro. Abajo queda un fondo marino seco, de sal, arrecifes muertos y fosas vacías. Cuando la luna de agua tapa la estrella, su sombra no es negra sino azul y llena de cáusticas: durante unos minutos el planeta vuelve a estar bajo el agua, y lo que quedó en el fondo despierta.</p>
+    <figure><img src="img/c-luna-clave.jpg" alt="Sobre una llanura de sal de un fondo marino seco, entre corales muertos blanco hueso, una gran esfera de agua azul con peces dentro cuelga en el cielo; su sombra es un círculo azul con redes de luz cáustica y pequeños puntos que se encienden" loading="lazy"><figcaption>Composición clave: la sombra azul sobre el antiguo fondo marino</figcaption></figure>
+    <div class="grid2">
+      <figure><img src="img/c-luna-orbita.jpg" alt="Planeta pálido y seco con anillos de arrecife rosado y fosas; una luna de agua azul y translúcida proyecta sobre él una sombra azul con cáusticas" loading="lazy"><figcaption>Vista orbital: el planeta seco, su mar en órbita y la sombra azul</figcaption></figure>
+      <div class="note">
+        <h3>Paleta y materiales</h3>
+        <div class="swatches">
+          <div class="sw"><span style="background:#e9e2d6"></span><span>sal #e9e2d6</span></div>
+          <div class="sw"><span style="background:#eadfd2"></span><span>coral muerto #eadfd2</span></div>
+          <div class="sw"><span style="background:#d68f86"></span><span>arrecife #d68f86</span></div>
+          <div class="sw"><span style="background:#6f5a66"></span><span>cuenca #6f5a66</span></div>
+          <div class="sw"><span style="background:#1d5c9e"></span><span>agua #1d5c9e</span></div>
+          <div class="sw"><span style="background:#bff6ff"></span><span>cáustica #bff6ff</span></div>
+        </div>
+        <p class="muted">Costra de sal, ondulaciones fósiles, coral ramificado blanco hueso, conchas enormes enterradas y una esfera de agua translúcida. El contraste lo hace la paleta: un mundo cálido y seco frente a un azul frío y vivo. Referencias de principio: los fondos marinos expuestos de los salares y del Mar Muerto, los arrecifes fósiles y la luz cáustica bajo el agua.</p>
+        <h3>Qué despierta curiosidad</h3>
+        <p class="muted">¿Por qué el mar está ahí arriba, y con peces? El momento del eclipse es un acontecimiento: la luz se vuelve submarina sobre tierra seca.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparación -->
+  <section id="comparacion">
+    <span class="eyebrow">Comparación</span>
+    <h2>Silueta y escala de carta</h2>
+    <figure><img src="img/siluetas.jpg" alt="Siluetas en negro de las tres direcciones a la misma escala y a 44, 22 y 11 píxeles: un círculo con una cresta curva, un óvalo inclinado, y un círculo con una luna" loading="lazy"><figcaption>Siluetas a la misma escala y a 44, 22 y 11 px de diámetro. La Rompiente · El Huso · La Luna de Agua</figcaption></figure>
+    <figure><img src="img/carta.jpg" alt="Las tres vistas orbitales reducidas a 150, 64 y 32 píxeles sobre negro" loading="lazy"><figcaption>Las vistas orbitales a 150, 64 y 32 px</figcaption></figure>
+    <p class="muted">La cresta de La Rompiente sólo se lee a tamaño medio: a escala de carta es un planeta oscuro y la forma desaparece, así que la identidad tendría que apoyarse también en el color o en un rasgo más grueso. El Huso se reconoce por su forma a cualquier tamaño, incluso en negro. La Luna de Agua se reconoce por la pareja: un planeta claro y cálido junto a una luna azul.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Criterio</th><th class="t-a">A · La Rompiente</th><th class="t-b">B · El Huso</th><th class="t-c">C · La Luna de Agua</th></tr></thead>
+        <tbody>
+          <tr><td>Composición</td><td><span class="dots">●●●●●</span><small>La imagen más monumental</small></td><td><span class="dots">●●●●○</span><small>El horizonte en cuenco inquieta</small></td><td><span class="dots">●●●●●</span><small>Círculo azul sobre mundo cálido</small></td></tr>
+          <tr><td>Silueta orbital</td><td><span class="dots">●●●○○</span><small>Buena de cerca, se pierde lejos</small></td><td><span class="dots">●●●●●</span><small>Única a cualquier tamaño</small></td><td><span class="dots">●●●●○</span><small>Se lee como pareja</small></td></tr>
+          <tr><td>Paleta</td><td><span class="dots">●●●●○</span><small>Coherente, pero la esperada</small></td><td><span class="dots">●●●○○</span><small>Fresca, poco misteriosa</small></td><td><span class="dots">●●●●●</span><small>La más propia y la más memorable</small></td></tr>
+          <tr><td>Materiales</td><td><span class="dots">●●●○○</span><small>Basalto y sal; falta riqueza</small></td><td><span class="dots">●●●○○</span><small>Arena, canto rodado, hielo</small></td><td><span class="dots">●●●●○</span><small>Sal, coral, concha, agua viva</small></td></tr>
+          <tr><td>Parece un lugar</td><td><span class="dots">●●●●○</span><small>Roca tallada, no pieza añadida</small></td><td><span class="dots">●●●○○</span><small>Riesgo de «píldora» desde la órbita</small></td><td><span class="dots">●●●●○</span><small>Un mundo con historia visible</small></td></tr>
+          <tr><td>Despierta curiosidad</td><td><span class="dots">●●●●○</span><small>Pasar bajo la ola</small></td><td><span class="dots">●●●●○</span><small>Subir por el mar</small></td><td><span class="dots">●●●●●</span><small>¿Por qué el mar está arriba?</small></td></tr>
+          <tr><td>Océano suspendido</td><td><span class="dots">●●●○○</span><small>Encaja bajo el voladizo</small></td><td><span class="dots">●●○○○</span><small>No lo necesita ni lo potencia</small></td><td><span class="dots">●●●●●</span><small>Lo convierte en la identidad misma</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="critica">
+    <span class="eyebrow">Crítica</span>
+    <h2>Qué funciona y qué no</h2>
+    <div class="grid3">
+      <div class="note"><h3 class="t-a">A · La Rompiente</h3>
+        <p><strong>Funciona.</strong> Recupera la fuerza del Gancho y deja de parecer un objeto: los estratos horizontales, la isla que lo sostiene y los restos caídos lo hacen geología. De cerca es la imagen más imponente.</p>
+        <p><strong>No funciona aún.</strong> Desde la órbita sigue dependiendo de un trazo fino en el limbo, que a escala de carta desaparece. La paleta es la que ya esperábamos: es segura, pero no sorprende.</p></div>
+      <div class="note"><h3 class="t-b">B · El Huso</h3>
+        <p><strong>Funciona.</strong> Es la silueta más reconocible y se consigue sin ninguna torre. El mar cuesta arriba es una idea visual nueva y extraña.</p>
+        <p><strong>No funciona aún.</strong> Desde la órbita roza lo abstracto (huevo o píldora) y su atmósfera es más diurna que misteriosa. El fenómeno del océano suspendido no se beneficia de la forma.</p></div>
+      <div class="note"><h3 class="t-c">C · La Luna de Agua</h3>
+        <p><strong>Funciona.</strong> Es la identidad más propia y la que más preguntas provoca. El eclipse azul es un acontecimiento visual que sólo existe en este mundo, y la paleta cálido-frío es inconfundible.</p>
+        <p><strong>No funciona aún.</strong> Deja de ser un planeta oceánico en sentido estricto: el océano es la luna. Los corales todavía parecen árboles de invierno y hay que diseñarlos como formas marinas. La luna de agua corre el riesgo de leerse como una canica de cristal si no se trabaja su superficie.</p></div>
+    </div>
+  </section>
+
+  <section id="recomendacion">
+    <span class="eyebrow">Recomendación (pendiente de decisión)</span>
+    <h2>La Luna de Agua tiene más potencial</h2>
+    <p class="lead">Es la que más curiosidad despierta, la que tiene la paleta más reconocible y la única en la que el océano suspendido define el planeta en lugar de ser un efecto. Se reconoce a escala de carta y produce un momento (el eclipse azul) que nadie más tiene.</p>
+    <p class="muted">Si preferís mantener un planeta oceánico en sentido estricto, La Rompiente es la opción más segura y recupera lo que funcionaba del Gancho. También es posible combinarlas: en el fondo marino seco de La Luna de Agua, la Rompiente sería un antiguo acantilado tallado por un mar que ya no está, con la luna de agua encima. La monumentalidad del Gancho volvería así con una razón de ser. No lo he dibujado todavía: lo propongo como siguiente estudio si os interesa esa dirección.</p>
+  </section>
+</div>
