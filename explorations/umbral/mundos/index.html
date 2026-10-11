@@ -1,0 +1,454 @@
+<title>Umbral, dos mundos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Lámina de dirección de arte: una columna ancha de imágenes a sangre de
+   columna, texto a 65 caracteres, mapas con leyenda al lado.
+   Un solo mundo visual oscuro (la tinta de gevorah), elegido a propósito. */
+:root {
+  --ink: #0e0c13;
+  --panel: #19171f;
+  --rule: #2c2937;
+  --paper: #eeedf5;
+  --muted: #a9a5b8;
+  --violet: #c0a1ff;
+  --blue: #94b0ff;
+  --sea: #7fe0cf;
+  --amber: #ffad66;
+  --display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step-0: clamp(0.95rem, 0.9rem + 0.2vw, 1.05rem);
+  --step-1: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.2vw, 2.3rem);
+  --step-3: clamp(2.4rem, 1.8rem + 3vw, 4.6rem);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  padding-inline: clamp(16px, 4vw, 48px);
+  padding-block: 0 96px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1180px; margin-inline: auto; display: grid; gap: 96px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; line-height: 1.05; text-wrap: balance; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+h4 { font: 600 0.78rem/1.3 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0; }
+p { margin: 0; max-width: 65ch; }
+em { font-style: italic; }
+a { color: var(--violet); }
+.eyebrow { font: 500 0.76rem/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: var(--step-1); line-height: 1.5; color: var(--paper); max-width: 60ch; }
+.stack { display: grid; gap: 20px; }
+.stack-lg { display: grid; gap: 40px; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); font-size: 0.85em; }
+
+/* cabecera */
+header { padding-top: 64px; display: grid; gap: 28px; }
+header .lede { color: var(--muted); }
+.sil { display: grid; gap: 12px; margin: 0; }
+.sil img { width: 100%; display: block; border-radius: 2px; }
+.sil-cap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sil-cap span { font-family: var(--display); font-style: italic; font-size: var(--step-1); text-align: center; color: var(--muted); }
+
+/* propuesta */
+.concept { display: grid; gap: 56px; }
+.concept-head { display: grid; gap: 18px; border-top: 1px solid var(--rule); padding-top: 32px; }
+.concept-head .tag { font-family: var(--mono); font-size: 0.8rem; color: var(--accent, var(--violet)); letter-spacing: 0.06em; }
+.a { --accent: var(--sea); }
+.b { --accent: var(--amber); }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+
+.note { border-left: 2px solid var(--accent); padding: 4px 0 4px 18px; display: grid; gap: 10px; }
+
+/* mapa */
+.map { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+@media (max-width: 860px) { .map { grid-template-columns: minmax(0, 1fr); } }
+.chart { position: relative; margin: 0; max-width: 100%; aspect-ratio: 1; }
+.chart img { width: 100%; height: 100%; display: block; border-radius: 2px; }
+.pin {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  font: 600 0.7rem/1 var(--mono); color: var(--ink);
+  background: var(--accent); box-shadow: 0 0 0 3px rgba(14, 12, 19, 0.65);
+}
+.chart figcaption { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.legend li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 14px; align-items: start; }
+.legend .k { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--ink); display: grid; place-items: center; font: 600 0.7rem/1 var(--mono); margin-top: 2px; }
+.legend b { font-weight: 600; }
+.legend p { font-size: 0.92rem; color: var(--muted); }
+.legend .shadow { color: var(--paper); }
+
+/* escenas */
+.scene { display: grid; gap: 16px; margin: 0; }
+.scene img { width: 100%; display: block; border-radius: 2px; background: var(--panel); aspect-ratio: 1.6; object-fit: cover; }
+.scene figcaption { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 28px; }
+@media (max-width: 700px) { .scene figcaption { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+.scene .n { font-family: var(--display); font-size: var(--step-2); line-height: 1; }
+.scene .n small { display: block; font: 500 0.72rem/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+.scene figcaption .stack { gap: 10px; }
+.scene figcaption p { font-size: 0.95rem; }
+.fixed { font-size: 0.86rem; color: var(--muted); }
+.fixed b { color: var(--paper); font-weight: 500; }
+
+/* paleta y materiales */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.sw { display: grid; gap: 8px; font-size: 0.8rem; }
+.sw i { display: block; height: 56px; border-radius: 2px; border: 1px solid var(--rule); }
+.sw span { color: var(--muted); }
+.sw code { font-family: var(--mono); font-size: 0.74rem; color: var(--paper); }
+.mats { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.mats li { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 16px; font-size: 0.92rem; border-top: 1px solid var(--rule); padding-top: 12px; }
+.mats li b { font-weight: 500; }
+.mats li span { color: var(--muted); }
+@media (max-width: 520px) { .mats li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+.chain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: 2px; }
+.chain > div { padding: 22px; display: grid; gap: 10px; align-content: start; }
+.chain > div + div { border-left: 1px solid var(--rule); }
+.chain p { font-size: 0.93rem; }
+@media (max-width: 860px) { .chain { grid-template-columns: minmax(0, 1fr); } .chain > div + div { border-left: 0; border-top: 1px solid var(--rule); } }
+
+/* crítica */
+.critique { display: grid; gap: 40px; border-top: 1px solid var(--rule); padding-top: 32px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 0.92rem; }
+th, td { text-align: left; vertical-align: top; padding: 16px 14px; border-top: 1px solid var(--rule); }
+thead th { font: 600 0.74rem/1.3 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); border-top: 0; }
+tbody th { font-weight: 500; width: 20%; }
+td { color: var(--muted); width: 40%; }
+td .score { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--paper); font-family: var(--mono); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.dots { display: inline-flex; gap: 4px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--muted); }
+.dots i.on { border-color: transparent; background: var(--c); }
+.ca { --c: var(--sea); }
+.cb { --c: var(--amber); }
+.verdict { display: grid; gap: 18px; background: var(--panel); padding: clamp(20px, 4vw, 40px); border-radius: 2px; }
+.verdict h3 { font-size: var(--step-2); }
+ol.steps { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; max-width: 70ch; }
+footer { border-top: 1px solid var(--rule); padding-top: 24px; font-size: 0.85rem; color: var(--muted); display: grid; gap: 8px; }
+footer p { max-width: 80ch; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">gevorah · Small Worlds · primer planeta · exploración de entorno</div>
+  <h1>Umbral, dos mundos</h1>
+  <p class="lede">Dos propuestas para el primer planeta, cada una con su geografía, su fenómeno de sombra y un lugar que sólo aparece cuando la sombra llega. Las cuatro escenas de cada propuesta salen del mismo modelo 3D con cámaras distintas, así que los accidentes del terreno están donde dicen estar en todas.</p>
+  <figure class="sil">
+    <img src="renders/siluetas.png" alt="Silueta de los dos planetas a la misma escala: a la izquierda una esfera con un saliente curvo que se levanta del borde superior derecho; a la derecha un núcleo pequeño rodeado de seis islas planas sobre tallos." width="1640" height="800">
+    <div class="sil-cap"><span>A · El Mar Suspendido</span><span>B · El Archipiélago del Reverso</span></div>
+  </figure>
+</header>
+
+<!-- ============================================================ A -->
+<section class="concept a" id="mar">
+  <div class="concept-head">
+    <div class="tag">Propuesta A</div>
+    <h2>El Mar Suspendido</h2>
+    <p class="lede">Un planeta casi todo océano, de agua oscura como tinta. Un cráter antiguo quedó sumergido; sólo sobrevive la mitad de su borde. Cuando cae la sombra de la luna, el agua sobre el cráter se suelta del fondo y sube como una lámina que se enciende. Debajo queda al aire un jardín que nadie ha visto.</p>
+  </div>
+
+  <div class="two">
+    <div class="stack">
+      <h4>La idea en una frase</h4>
+      <p>El agua no sube porque sí: sube donde es profunda, y unos organismos anclados al fondo, las <em>amarras</em>, la sujetan desde abajo. Por eso no se va al espacio, sino que se queda flotando a poca altura, acolchada sobre el jardín como un techo.</p>
+    </div>
+    <div class="note">
+      <h4>Qué cambié del planteamiento</h4>
+      <p>Mantengo la premisa entera. Añado una causa: las amarras explican por qué el agua forma una lámina estable en lugar de dispersarse, y convierten el «segundo cielo» en algo con estructura que se puede tocar. Limito la elevación a las aguas profundas, así que el fenómeno siempre revela el mismo lugar y no una superficie cualquiera.</p>
+    </div>
+  </div>
+
+  <div class="map">
+    <figure class="chart">
+      <img src="renders/a0-mapa.jpg" alt="Vista cenital sobre el cráter sumergido: el borde rocoso en arco al norte y este, el saliente curvo al noreste, torres blancas al suroeste y vetas de espuma en espiral sobre el océano." width="1200" height="1200">
+      <span class="pin" style="left:74.7%;top:29.7%">1</span>
+      <span class="pin" style="left:44.5%;top:32.2%">2</span>
+      <span class="pin" style="left:65.2%;top:33.7%">3</span>
+      <span class="pin" style="left:56%;top:58%">4</span>
+      <span class="pin" style="left:48%;top:51%">5</span>
+      <span class="pin" style="left:30.7%;top:70.2%">6</span>
+      <figcaption>Vista cenital sobre la Fosa, sin atmósfera. La estrella entra desde arriba a la izquierda.</figcaption>
+    </figure>
+    <ol class="legend">
+      <li><span class="k">1</span><div><b>El Gancho</b><p>En el punto más alto del borde, la roca se volcó hacia dentro. Se levanta 0,6 radios sobre el mar y cuelga sobre la Fosa: es lo que rompe el contorno del planeta desde la órbita. Basalto en lajas. <span class="shadow">En la sombra no se mueve; la lámina sube por debajo de su punta.</span></p></div></li>
+      <li><span class="k">2</span><div><b>La Cresta</b><p>Lo que queda del borde del cráter: un arco de unos 220° al norte y al este, con escarpe interior de basalto columnar y dos brechas. Su cara interior mira a la estrella por la tarde. <span class="shadow">Fija. Conserva líneas de sal a tres alturas: las marcas de elevaciones anteriores.</span></p></div></li>
+      <li><span class="k">3</span><div><b>El Salar</b><p>Meseta baja detrás de la Cresta, blanca, de costa recortada. Desde la órbita es la mancha clara que acompaña al Gancho. <span class="shadow">Demasiado somera: el agua aquí no sube.</span></p></div></li>
+      <li><span class="k">4</span><div><b>La Fosa y el Jardín de Amarras</b><p>El fondo del cráter, unos 48° de arco de diámetro y 0,12 radios bajo el nivel del mar. Limo claro cubierto de amarras ancladas con nudos de óxido, salvo un canal de corriente que baja hacia la Sima. <span class="shadow">Es lo que la sombra descubre.</span></p></div></li>
+      <li><span class="k">5</span><div><b>La Sima</b><p>Un pozo al suroeste del centro, rodeado de terrazas de travertino con pozas. <span class="shadow">No se vacía: queda una columna de agua que une el fondo con la lámina.</span></p></div></li>
+      <li><span class="k">6</span><div><b>Los Dientes</b><p>Siete torres de toba en un bajío de sal al suroeste, fuera del cráter. La mayor mide 0,13 radios. Tienen bandas de sal a las mismas alturas que la Cresta. <span class="shadow">Fijas: son la pista, visible desde la aproximación, de que el mar sube.</span></p></div></li>
+    </ol>
+  </div>
+
+  <figure class="scene">
+    <img src="renders/a1-orbita.jpg" alt="El planeta oceánico entero en el espacio, con el saliente curvo del borde del cráter sobresaliendo del contorno y vetas de espuma en espiral." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>01 · Órbita</small>Silueta</div>
+      <div class="stack">
+        <p>Una esfera de tinta con una sola cosa fuera de sitio: el Gancho, que asoma del contorno como una ola de piedra a punto de romper. Las vetas de espuma giran hacia la Fosa y dibujan una espiral, así que desde lejos ya se intuye que todo el mar apunta a un lugar. La mancha blanca del Salar y el arco de la Cresta bastan para orientarse.</p>
+        <p class="fixed"><b>Para comprobar la coherencia:</b> Gancho arriba a la derecha, Cresta en arco, Dientes como puntos blancos abajo a la izquierda, el jardín apenas visible bajo el agua de la Fosa.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <figure class="scene">
+    <img src="renders/a2-aproximacion.jpg" alt="Vista baja sobre el océano oscuro hacia el saliente curvo de basalto, con la luna a la izquierda y el brillo tenue del jardín bajo el agua en primer plano." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>02 · Aproximación</small>Sobre la Fosa</div>
+      <div class="stack">
+        <p>Llegamos desde el suroeste, a baja altura sobre la Fosa, mirando al Gancho. El Gancho es enorme a esta escala: una laja de basalto con estratos, apoyada en una Cresta de columnas. Bajo el agua, a nuestros pies, se adivinan las amarras dormidas como un brillo verde muy tenue. La luna está a un lado: todavía no tapa nada.</p>
+        <p class="fixed"><b>Materiales:</b> agua densa y absorbente, espuma de sal, basalto columnar con líneas blancas de marea, sal en la meseta.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <figure class="scene">
+    <img src="renders/a3-transformacion.jpg" alt="El mismo encuadre durante el eclipse: sobre el cráter, el agua se ha levantado como una cúpula baja y translúcida que brilla en verde azulado; el saliente de piedra sigue igual detrás." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>03 · Transformación</small>La lámina sube</div>
+      <div class="stack">
+        <p>La umbra cae sobre la Fosa y el agua empieza a separarse del lecho. Sube sólo donde el mar es hondo; en los bordes, donde es somera, se queda. El limo cae y la lámina se aclara; el plancton se enciende al agitarse y la lámina brilla desde dentro. Los puntos claros del techo son los anclajes de las amarras, tensas, que tiran de la lámina hacia abajo.</p>
+        <p class="fixed"><b>Se mueve:</b> el agua sobre la Fosa. <b>No se mueve:</b> el Gancho, la Cresta, el Salar, los Dientes, el mar somero de alrededor.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <figure class="scene">
+    <img src="renders/a4-descubrimiento.jpg" alt="Desde el fondo del cráter al aire: un techo de agua luminosa a poca altura, cintas finas que suben del suelo hasta el techo, y una columna de agua en el centro sobre un pozo con terrazas." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>04 · Descubrimiento</small>El Jardín de Amarras</div>
+      <div class="stack">
+        <p>Estamos de pie en el fondo del mar, al aire. Arriba, el agua es un cielo bajo y luminoso; por él pasan las sombras de una raya y de un cardumen. Las amarras suben del limo hasta el techo como hilos tensos. En el centro, la Sima sigue llena: una columna de agua que une suelo y cielo, con lentes de agua flotando sobre las pozas de travertino.</p>
+        <p><b>Interacción sugerida:</b> tañer las amarras. Cada una, al tocarla, manda un pulso de luz hacia arriba que se abre en anillos por el techo. La Amarra Madre, trenzada y con un ancla de óxido junto al canal, hace vibrar todo el jardín, y las criaturas del techo bajan a mirar. Una segunda interacción posible: entrar en la columna de la Sima y bajar por ella, el único camino que sigue mojado.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <div class="two">
+    <div class="stack">
+      <h4>Paleta</h4>
+      <div class="swatches">
+        <div class="sw"><i style="background:#1c1638"></i><code>#1c1638</code><span>mar de tinta</span></div>
+        <div class="sw"><i style="background:#2a2733"></i><code>#2a2733</code><span>basalto</span></div>
+        <div class="sw"><i style="background:#e9ecec"></i><code>#e9ecec</code><span>sal y espuma</span></div>
+        <div class="sw"><i style="background:#cfc8bb"></i><code>#cfc8bb</code><span>toba</span></div>
+        <div class="sw"><i style="background:#a4553f"></i><code>#a4553f</code><span>óxido de anclaje</span></div>
+        <div class="sw"><i style="background:#7fe0cf"></i><code>#7fe0cf</code><span>plancton encendido</span></div>
+        <div class="sw"><i style="background:#8a86f0"></i><code>#8a86f0</code><span>velo violeta</span></div>
+      </div>
+      <p class="muted" style="font-size:0.9rem">Identidad secundaria del mundo: verde marino frío sobre tinta. El violeta del universo gevorah aparece en la atmósfera y en los velos del techo de agua.</p>
+    </div>
+    <div class="stack">
+      <h4>Referencias de materiales</h4>
+      <ul class="mats">
+        <li><b>Basalto columnar</b><span>Calzada del Gigante, Reynisfjara: prismas verticales en el escarpe interior de la Cresta.</span></li>
+        <li><b>Torres de toba</b><span>Mono Lake: los Dientes, con bandas de sal donde estuvo el agua.</span></li>
+        <li><b>Travertino en terrazas</b><span>Pamukkale: las pozas escalonadas alrededor de la Sima.</span></li>
+        <li><b>Costras de halita</b><span>Mar Muerto, salares andinos: el Salar, la espuma y las líneas de marea.</span></li>
+        <li><b>Plancton bioluminiscente</b><span>Noctiluca: el agua sólo brilla al agitarse.</span></li>
+        <li><b>Rizoides de kelp</b><span>Los nudos de anclaje de las amarras, teñidos de óxido.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="chain">
+    <div><h4>Geografía</h4><p>Un cráter es una cuenca: el único sitio del planeta con agua profunda rodeada de tierra. Medio borde roto deja una pared de un lado y mar abierto del otro, así que la Fosa se ve desde la órbita y se puede entrar en ella desde el mar.</p></div>
+    <div><h4>Fenómeno</h4><p>La sombra levanta el agua profunda. Sobre la Fosa, el agua queda sujeta por las amarras y forma un techo. Fuera, el mar somero no reacciona. Las marcas de sal en los Dientes y la Cresta avisan antes de que pase.</p></div>
+    <div><h4>Interacción</h4><p>El visitante lleva la sombra; el planeta decide qué se levanta. El premio es entrar debajo: caminar por el fondo, tañer las amarras, bajar por la Sima. La interacción ocurre dentro del espacio revelado, no en la luna.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ B -->
+<section class="concept b" id="reverso">
+  <div class="concept-head">
+    <div class="tag">Propuesta B</div>
+    <h2>El Archipiélago del Reverso</h2>
+    <p class="lede">Umbral como una planta. Un núcleo pequeño y húmedo, el Sotobosque, sostiene seis islas con tallos fibrosos, como hojas. Por fuera son roca blanqueada por la estrella; por dentro, musgo y farolillos plegados. Con la sombra, las islas se abren hacia fuera como tapas y dejan ver su reverso y lo que guardaban debajo.</p>
+  </div>
+
+  <div class="two">
+    <div class="stack">
+      <h4>La idea en una frase</h4>
+      <p>Cada isla cuelga de un tallo por su borde, y entre los dos hay un <em>pulvínulo</em>: la articulación hinchada con la que algunas plantas mueven las hojas de noche. En la sombra pierde presión y la isla gira sobre él. Es una bisagra que crece, no un mecanismo.</p>
+    </div>
+    <div class="note">
+      <h4>Qué cambié del planteamiento</h4>
+      <p>El planteamiento pedía estructuras que cambian de orientación. Las resuelvo con un modelo botánico real (la nictinastia de la mimosa) en lugar de islas que giran en el aire: el tallo sujeta la isla por un extremo y la articulación explica cómo gira y hasta dónde. Las islas no se voltean del todo; se abren como tapas, y así revelan dos cosas a la vez: su reverso y el hueco del núcleo que tapaban.</p>
+    </div>
+  </div>
+
+  <div class="map">
+    <figure class="chart">
+      <img src="renders/b0-mapa.jpg" alt="Vista desde encima de la isla mayor: una meseta en terrazas en el centro, rodeada por islas más pequeñas sobre tallos alrededor de un núcleo violeta." width="1200" height="1200">
+      <span class="pin" style="left:50%;top:50%">1</span>
+      <span class="pin" style="left:63.7%;top:57.6%">2</span>
+      <span class="pin" style="left:32.9%;top:30.7%">3</span>
+      <span class="pin" style="left:69.7%;top:32.8%">4</span>
+      <span class="pin" style="left:42.4%;top:78.4%">5</span>
+      <span class="pin" style="left:79.2%;top:47.1%">6</span>
+      <figcaption>Vista desde la vertical de la Meseta. La Umbría queda justo debajo de ella, tapada.</figcaption>
+    </figure>
+    <ol class="legend">
+      <li><span class="k">1</span><div><b>La Meseta y la Umbría</b><p>La isla mayor, frente a la estrella: cuatro terrazas de roca con grietas y rosetas de liquen. Mide unos 0,8 diámetros del núcleo. Debajo, en el núcleo, está la Umbría: una hondonada que nunca recibe luz. <span class="shadow">Es la que más gira: hasta unos 86°.</span></p></div></li>
+      <li><span class="k">2</span><div><b>El pulvínulo de la Meseta</b><p>La articulación en su borde este, donde llega el tallo trenzado. Piel más clara con venas. <span class="shadow">Late con luz violeta mientras gira.</span></p></div></li>
+      <li><span class="k">3</span><div><b>El Atolón</b><p>Un anillo al noroeste, sobre el terminador. Por su hueco se ve el núcleo. <span class="shadow">No gira en este eclipse: la sombra no lo alcanza.</span></p></div></li>
+      <li><span class="k">4</span><div><b>La Copa</b><p>Pequeña y muy abombada, al noreste. La forma más compacta del grupo. <span class="shadow">Fija en este eclipse.</span></p></div></li>
+      <li><span class="k">5</span><div><b>Las Gemelas</b><p>Dos hojas en un mismo tallo bifurcado, al sur. <span class="shadow">Se abren a la vez, unos 50°, y quedan cara a cara.</span></p></div></li>
+      <li><span class="k">6</span><div><b>La Concha</b><p>Alargada y nervada, al sureste; la más curvada. <span class="shadow">Se abre un poco, unos 40°.</span></p></div></li>
+    </ol>
+  </div>
+
+  <figure class="scene">
+    <img src="renders/b1-orbita.jpg" alt="El archipiélago entero: un núcleo violeta oscuro con seis islas de roca clara alrededor, sostenidas por tallos, y la luna a la izquierda." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>01 · Órbita</small>Silueta</div>
+      <div class="stack">
+        <p>Un núcleo oscuro con islas claras alrededor, como un fruto con brácteas o una flor a medio cerrar. La Meseta domina el lado de la estrella; las demás asoman por el contorno a distintos ángulos y dejan ver un filo violeta: su reverso. Los tallos son lo que distingue esto de un grupo de rocas flotando.</p>
+        <p class="fixed"><b>Para comprobar la coherencia:</b> Meseta a la izquierda y delante, Atolón arriba, Copa arriba a la derecha, Concha a la derecha, Gemelas abajo.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <figure class="scene">
+    <img src="renders/b2-aproximacion.jpg" alt="Más cerca: la meseta en terrazas sobre el núcleo violeta, con un tallo trenzado que sube del núcleo y la luna arriba a la izquierda." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>02 · Aproximación</small>Bajo la Meseta</div>
+      <div class="stack">
+        <p>Llegamos por debajo y por fuera de la Meseta. Arriba, sus terrazas blanqueadas; abajo, el Sotobosque, húmedo y violeta. La cara interior de la Meseta sólo se adivina como un filo oscuro: lo que hay ahí no se ve desde ningún punto en el día. A la derecha y abajo, el borde de la Concha.</p>
+        <p class="fixed"><b>Materiales:</b> roca calcárea blanqueada con grietas, liquen dorado en rosetas, tallo de fibras trenzadas, humus y musgo en el núcleo.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <figure class="scene">
+    <img src="renders/b3-transformacion.jpg" alt="De perfil a lo largo de la bisagra: la meseta gira hacia arriba sobre su tallo y en su cara inferior asoman puntos de luz; debajo, el núcleo." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>03 · Transformación</small>La bisagra cede</div>
+      <div class="stack">
+        <p>Vista de perfil, mirando a lo largo de la bisagra. La sombra alcanza el pulvínulo; la Meseta gira sobre él unos 43° y se levanta como una tapa. En su reverso, los farolillos empiezan a desplegarse y a encenderse. El tallo se queda donde estaba, curvado por el peso.</p>
+        <p class="fixed"><b>Se mueve:</b> las islas que toca la umbra, cada una alrededor de su propia articulación. <b>No se mueve:</b> el núcleo, los tallos y las islas que quedan fuera de la sombra.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <figure class="scene">
+    <img src="renders/b4-descubrimiento.jpg" alt="Desde el fondo de una hondonada del núcleo durante el eclipse total: la meseta abierta casi en vertical, con su reverso cubierto de farolillos encendidos, junto a la estrella eclipsada con su corona." width="1600" height="1000">
+    <figcaption>
+      <div class="n"><small>04 · Descubrimiento</small>La Umbría</div>
+      <div class="stack">
+        <p>Estamos en la Umbría, la hondonada del núcleo que la Meseta tapaba. Por primera vez se ve el cielo desde aquí: la Meseta abierta casi en vertical, su reverso lleno de farolillos encendidos, y al lado la estrella eclipsada. En el suelo, vainas de semillas que sólo se abren en la oscuridad completa.</p>
+        <p><b>Interacción sugerida:</b> abrir las vainas. Al tocarlas sueltan semillas de luz ámbar que suben hacia el reverso de la Meseta y se quedan ahí como farolillos nuevos. Cuando la sombra pasa, la isla se cierra y se los guarda: la próxima vez que se abra, el reverso recordará cada visita.</p>
+      </div>
+    </figcaption>
+  </figure>
+
+  <div class="two">
+    <div class="stack">
+      <h4>Paleta</h4>
+      <div class="swatches">
+        <div class="sw"><i style="background:#cfc4b8"></i><code>#cfc4b8</code><span>roca blanqueada</span></div>
+        <div class="sw"><i style="background:#8f8495"></i><code>#8f8495</code><span>roca en sombra</span></div>
+        <div class="sw"><i style="background:#c9b27a"></i><code>#c9b27a</code><span>liquen</span></div>
+        <div class="sw"><i style="background:#2a1f33"></i><code>#2a1f33</code><span>humus</span></div>
+        <div class="sw"><i style="background:#5a3d7a"></i><code>#5a3d7a</code><span>musgo del reverso</span></div>
+        <div class="sw"><i style="background:#b08cff"></i><code>#b08cff</code><span>farolillo frío</span></div>
+        <div class="sw"><i style="background:#ffad66"></i><code>#ffad66</code><span>semilla ámbar</span></div>
+      </div>
+      <p class="muted" style="font-size:0.9rem">Identidad secundaria del mundo: hueso y ámbar. El violeta de gevorah es aquí material propio del planeta: el lado vivo.</p>
+    </div>
+    <div class="stack">
+      <h4>Referencias de materiales</h4>
+      <ul class="mats">
+        <li><b>Lapiaz calcáreo</b><span>The Burren: la superficie de las islas, cortada en losas por grietas.</span></li>
+        <li><b>Liquen crustáceo</b><span>Rosetas doradas sobre roca expuesta al sol.</span></li>
+        <li><b>Pulvínulo de mimosa</b><span>La articulación que mueve las hojas de noche, a escala de isla.</span></li>
+        <li><b>Raíces de higuera estranguladora</b><span>Los tallos: haces trenzados que se abren en raíces al llegar al núcleo.</span></li>
+        <li><b>Gusanos luminosos de Waitomo</b><span>Los farolillos: hilos colgantes con una gota de luz, en techos que nunca ven el sol.</span></li>
+        <li><b>Musgo de turbera</b><span>Las almohadillas violetas del reverso y del Sotobosque.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="chain">
+    <div><h4>Geografía</h4><p>Un núcleo con islas sujetas por un borde. Cada isla tiene dos caras: la que ve la estrella y la que ve el núcleo. Debajo de cada una hay un hueco que la isla tapa. La Meseta tapa el mayor: la Umbría.</p></div>
+    <div><h4>Fenómeno</h4><p>La sombra relaja los pulvínulos. Sólo giran las islas que la umbra toca, cada una sobre su bisagra y en un ángulo propio. Al abrirse muestran el reverso vivo y destapan el núcleo.</p></div>
+    <div><h4>Interacción</h4><p>Llevar la sombra elige qué isla se abre. Dentro de la Umbría, las vainas responden a la oscuridad total y al tacto. Lo que el visitante suelta se queda en el reverso de la isla.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ crítica -->
+<section class="critique" id="critica">
+  <div class="stack">
+    <div class="eyebrow">Crítica</div>
+    <h2>Cuál merece ser explorado</h2>
+    <p class="lede">Las puntuaciones van de 1 a 5 y juzgan el concepto, no la calidad de estos renders, que son estudios de encaje: geometría, luz y materiales resueltos lo justo para leer el mundo.</p>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Criterio</th><th>A · El Mar Suspendido</th><th>B · El Archipiélago del Reverso</th></tr></thead>
+      <tbody>
+        <tr><th>1. Originalidad visual</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>4</div>Un mar que se levanta sobre su propio fondo y se queda sujeto por organismos no tiene un referente claro. El riesgo está en el resplandor turquesa, que se parece a muchos shaders de agua.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>3</div>Las islas flotantes son un tópico muy gastado. Los tallos y el pulvínulo lo desplazan hacia lo botánico, pero de lejos todavía se lee como «rocas alrededor de una bola».</td></tr>
+        <tr><th>2. Identidad orbital</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>4</div>Una esfera y una sola protuberancia: se reconoce a cualquier tamaño, incluso como icono. La espiral de espuma añade una segunda lectura sin ensuciar el contorno.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>2</div>Seis masas a distintos ángulos producen un contorno ruidoso que cambia mucho según la cámara. A tamaño de miniatura cuesta distinguirla de un asteroide.</td></tr>
+        <tr><th>3. Coherencia geográfica</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>4</div>El Gancho funciona como ancla: aparece en las cuatro escenas y orienta todo lo demás. La escena 04 lo pierde de vista; en el prototipo debería asomar por el techo de agua.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>3,5</div>La Meseta conecta las cuatro escenas, pero las demás islas sólo se reconocen en la órbita. De cerca, el mundo se reduce a una isla y un tallo.</td></tr>
+        <tr><th>4. Relación forma y mecánica</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>4,5</div>La forma del terreno decide el fenómeno: sólo una cuenca profunda puede levantar una lámina, y las marcas de sal cuentan la historia antes de que ocurra.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>4</div>El pulvínulo explica el giro sin máquinas, y que cada isla tape un hueco da sentido a abrirla. La relación es más mecánica que geográfica: el núcleo no influye en qué se abre.</td></tr>
+        <tr><th>5. Potencial de descubrimiento</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>4,5</div>Revela un lugar entero, con suelo, techo y una pieza central (la columna de la Sima). Cambia la escala: de mirar un planeta a estar dentro de su mar.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>3,5</div>El reverso y la Umbría son bonitos pero pequeños. El descubrimiento se parece de una isla a otra, así que el segundo pierde fuerza.</td></tr>
+        <tr><th>6. Posibilidades de exploración</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>4</div>Tres niveles naturales: superficie, fondo al aire y el pozo. Lo que hay fuera de la Fosa (Dientes, Salar) da contexto, aunque poca acción.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>3,5</div>Escala bien a más islas, cada una con su reverso. Las Gemelas cara a cara insinúan conexiones entre islas, pero aún no están diseñadas.</td></tr>
+        <tr><th>7. Calidad de la dirección de arte</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>3,5</div>Paleta sobria (tinta, basalto, sal) con un solo acento de luz. El Gancho todavía es demasiado liso y simétrico, y el verde del techo debería acercarse al azul de gevorah.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>3</div>El contraste hueso y violeta funciona, y la escena del eclipse es la más memorable de las ocho. La roca se ve blanda, como espuma, y el núcleo necesita más diseño.</td></tr>
+        <tr><th>8. Riesgo de demo gráfica genérica</th>
+          <td><div class="score ca"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Medio</div>Agua brillante, cáusticas y bioluminiscencia son terreno de demos. Lo salva la geografía: el fenómeno pasa en un sitio concreto y por una razón.</td>
+          <td><div class="score cb"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>Medio-alto</div>Islas flotantes, violeta y partículas de luz se parecen a un fondo de escritorio de fantasía. La mecánica de bisagra es lo que lo aleja de ahí.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="verdict">
+    <div class="eyebrow">Recomendación</div>
+    <h3>Prototipar A, El Mar Suspendido</h3>
+    <p>A tiene la silueta más clara, la mecánica que mejor nace de su geografía y un descubrimiento que cambia la escala de la experiencia: pasar de mirar un planeta a caminar bajo su mar. B tiene la mejor imagen suelta (el eclipse visto desde la Umbría) y una idea muy buena, la bisagra orgánica, pero su silueta es débil y su descubrimiento se repite. No es la opción más sencilla de construir: B se resuelve con rotaciones rígidas, mientras A necesita una lámina de agua deformable y cientos de cintas instanciadas.</p>
+    <p>Lo que me llevaría de B a A: la articulación viva. Las amarras pueden comportarse como los pulvínulos, tensándose y destensándose con un pulso visible, y la Sima puede funcionar como la Umbría: un hueco que sólo se ve cuando el planeta se abre.</p>
+    <h4>Antes del prototipo</h4>
+    <ol class="steps">
+      <li>Redibujar el Gancho: más fino en la punta, en lajas, con una fractura que lo haga parecer roto y no esculpido.</li>
+      <li>Llevar el techo de agua del verde hacia el azul de gevorah, y dejar el verde sólo para los pulsos de las amarras.</li>
+      <li>Decidir qué se ve desde el jardín: el Gancho debería asomar por el techo de agua para unir la escena 04 con las otras tres.</li>
+      <li>Diseñar el ciclo de la interacción: cuánto dura la sombra, qué pasa al volver el agua y qué queda distinto después.</li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <p>Cómo se hicieron: cada propuesta es un único modelo procedural (campos de distancia) con su luz y su luna, renderizado con un trazador propio desde cuatro cámaras. Así la ubicación, las proporciones y la relación con la luz de cada accidente son idénticas en todas las escenas. Los renders son estudios de encaje, no pintura final.</p>
+  <p class="mono">explorations/umbral/mundos · src/mar.cpp · src/rev.cpp</p>
+</footer>
+
+</div>
