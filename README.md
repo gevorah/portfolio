@@ -11,10 +11,10 @@ To run the application locally, make sure you have `Node.js v20+` installed. Fol
 
 Install dependencies with:
 ```bash
-yarn
+pnpm install
 ```
 
 Start the development server with:
 ```bash
-yarn dev
+pnpm dev
 ```
