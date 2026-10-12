@@ -165,18 +165,22 @@ def travertine_material():
     # travertino joven (donde corre el agua) crema; viejo y seco, ocre manchado
     young = _math(g, "MULTIPLY", _math(g, "MULTIPLY", flow, 1.6), 1.0, clamp=True)
     old = ramp(g, n1, [(0.25, (0.24, 0.17, 0.10)), (0.55, (0.36, 0.27, 0.17)), (0.8, (0.30, 0.22, 0.14))])
-    fresh = ramp(g, n2, [(0.3, (0.62, 0.55, 0.43)), (0.7, (0.70, 0.64, 0.52))])
+    fresh = ramp(g, n2, [(0.3, (0.46, 0.40, 0.30)), (0.7, (0.54, 0.47, 0.36))])
     col = mix_col(g, young, old, fresh)
     # roca desnuda donde el travertino apenas tiene espesor
-    thin = _math(g, "SUBTRACT", 1.0, _math(g, "DIVIDE", dep, 0.12, clamp=True))
-    col = mix_col(g, _math(g, "MULTIPLY", thin, 0.85), col, (0.045, 0.043, 0.045))
+    thin = _math(g, "SUBTRACT", 1.0, _math(g, "DIVIDE", dep, 0.05, clamp=True))
+    col = mix_col(g, _math(g, "MULTIPLY", thin, 0.6), col, (0.10, 0.09, 0.08))
     # láminas de crecimiento en las cortinas
     steep = _math(g, "SUBTRACT", 1.0, _math(g, "MULTIPLY", nz, 1.3), clamp=True)
-    lam = g.n("ShaderNodeTexWave", Vector=pos, _wave_type="BANDS", _bands_direction="Z", Scale=2.2, Distortion=1.5, **{"Detail": 3.0}).outputs["Fac"]
-    col = mix_col(g, _math(g, "MULTIPLY", steep, _math(g, "MULTIPLY", lam, 0.12)), col, (0.20, 0.14, 0.08))
+    lam = g.n("ShaderNodeTexWave", Vector=pos, _wave_type="BANDS", _bands_direction="Z", Scale=2.2, Distortion=0.3, **{"Detail": 3.0}).outputs["Fac"]
+    # las cortinas: más oscuras y ocres que los labios, sin bandas
+    col = mix_col(g, _math(g, "MULTIPLY", steep, 0.35), col, (0.30, 0.22, 0.14))
     # tapetes de algas en el fondo de las pozas: dorados arriba (agua dulce), pardos abajo
     # el labio, donde precipita, queda claro; el fondo de la poza se cubre de biopelícula
+    # solo en superficies planas: en las cortinas la interpolación de los atributos dibujaría peines
+    flat = _math(g, "MULTIPLY", _math(g, "SUBTRACT", nz, 0.9), 12.0, clamp=True)
     mat_f = _math(g, "MULTIPLY", _math(g, "DIVIDE", depth, 0.03, clamp=True), _math(g, "ADD", 0.55, _math(g, "MULTIPLY", n2, 0.6)))
+    mat_f = _math(g, "MULTIPLY", mat_f, flat)
     upper = _math(g, "DIVIDE", _math(g, "ADD", z, 14.0), 12.0, clamp=True)
     algae = mix_col(g, upper, (0.06, 0.05, 0.02), (0.30, 0.17, 0.035))
     algae = mix_col(g, _math(g, "MULTIPLY", n1, 0.6), algae, (0.10, 0.12, 0.03))
@@ -184,7 +188,7 @@ def travertine_material():
     rim = _math(g, "MULTIPLY", _math(g, "MULTIPLY", flow, 2.5, clamp=True), _math(g, "SUBTRACT", 1.0, _math(g, "DIVIDE", depth, 0.02, clamp=True)))
     col = mix_col(g, _math(g, "MULTIPLY", rim, 0.6), col, (0.80, 0.74, 0.62))
     # mojado: oscurece y abrillanta
-    wetf = _math(g, "MAXIMUM", _math(g, "MULTIPLY", flow, 3.0, clamp=True), _math(g, "DIVIDE", depth, 0.02, clamp=True))
+    wetf = _math(g, "MAXIMUM", _math(g, "MULTIPLY", flow, 3.0, clamp=True), _math(g, "MULTIPLY", _math(g, "DIVIDE", depth, 0.02, clamp=True), flat))
     col = mix_col(g, _math(g, "MULTIPLY", wetf, 0.45), col, (0.0, 0.0, 0.0))
     rough = _math(g, "SUBTRACT", 0.62, _math(g, "MULTIPLY", wetf, 0.5))
     # microgours: pequeños lóbulos en el fondo de las pozas y crenulación en los labios

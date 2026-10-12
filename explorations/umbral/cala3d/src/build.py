@@ -132,7 +132,8 @@ def build():
     # agua: el mar que entra por el tubo y las pozas de las gradas por encima de él
     pools = (w - h > 0.03) & (w > SEA)
     wl = np.where(pools, w, SEA)
-    wmask = (wl - h > 0.005)
+    # el agua continúa un poco bajo el travertino: la orilla la dibuja el corte limpio con el suelo
+    wmask = binary_dilation(wl - h > 0.005, iterations=4)
     water = grid_mesh("Agua", wl, 64.0, CELLF, mask=wmask, step=1)
     set_attr(floor, "dep", np.clip(h - h0, 0, None))
     set_attr(floor, "flow", np.clip(np.log10(q / q.max() * 1e5 + 1) / 5, 0, 1))

@@ -104,7 +104,9 @@ for k, (fr, jump, nl, amp, pinch) in enumerate(FRONTS):
     amph += j * smoothstep(front - 0.9, front + 0.9, Rw)
 amph = np.minimum(amph, np.interp(R, [0, 9, 13], [-27.5, -27.0, -21.0]) + 40 * (R > 11))
 amph += 0.6 * (fbm(14, 3, 2) - 0.5) * smoothstep(12, 22, R)
-amph = np.where(R > 58, np.maximum(amph, np.interp(R, [58, 64, 72, 90], [3.0, 6.0, 12.0, 30.0])), amph)
+# el pie de la pared del fondo: sube en rampa irregular, no en un arco perfecto
+Rb = R + 6.0 * (fbm(11, 3, 90) - 0.5) * 2
+amph = np.maximum(amph, np.interp(Rb, [56, 64, 72, 90], [-2.0, 6.0, 13.0, 30.0], left=-1e3))
 # el canal del tubo volcánico, con bancos de lava a los lados (cota −20)
 rel = np.stack([X - TUNNEL_P[0], Y - TUNNEL_P[1]], -1)
 dp = np.abs(rel[..., 0] * TUNNEL_DIR[1] - rel[..., 1] * TUNNEL_DIR[0])
