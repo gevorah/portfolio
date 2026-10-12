@@ -3,7 +3,9 @@
 No genera geografía: toda la información de color viene del mapa dibujado a
 mano. Sirve para comprobar cómo se lee ese mapa desde la órbita (silueta,
 manchas, terminador, brillo del agua). Admite una esfera o un cuerpo de dos
-lóbulos (para La Cintura), trazado por campos de distancia.
+lóbulos (para La Cintura), trazado por campos de distancia. La esfera acepta
+además un mapa de alturas que inclina las normales (relieve de la tierra y,
+muy atenuado, del fondo visto a través del agua).
 """
 
 import math
@@ -69,8 +71,16 @@ def world_lonlat(wn):
     return lon, lat
 
 
-def shade(n, albedo, water, light, p):
-    """n: normales en vista (N,3); albedo lineal (N,3); water (N,) 0..1."""
+def shade(n, albedo, water, light, p, n_geo=None):
+    """n: normales en vista (N,3); albedo lineal (N,3); water (N,) 0..1.
+
+    n_geo: normal geométrica (sin relieve). Si se da, n sólo modula la luz
+    difusa (el relieve de la tierra y el fondo visto a través del agua) y la
+    superficie del mar, que es lisa, usa n_geo para el brillo, el fresnel y la
+    neblina del limbo.
+    """
+    if n_geo is None:
+        n_geo = n
     L = np.array(light, dtype=np.float32)
     L = L / np.linalg.norm(L)
     V = np.array([0, 0, 1.0], dtype=np.float32)
@@ -82,21 +92,22 @@ def shade(n, albedo, water, light, p):
     lit = np.power(d, p.get("gamma_light", 0.85))
     col = albedo * (lit[:, None] * np.array(p.get("sun", [1.0, 0.97, 0.92]))
                     + np.array(p.get("ambient", [0.02, 0.022, 0.04])))
-    # banda del terminador teñida
-    tb = np.exp(-((ndl + 0.02) / p.get("term_w", 0.14)) ** 2)
+    # banda del terminador teñida: es luz de la atmósfera, va con la esfera y no con el relieve
+    ndl_g = n_geo @ L
+    tb = np.exp(-((ndl_g + 0.02) / p.get("term_w", 0.14)) ** 2)
     col += albedo * tb[:, None] * np.array(p.get("term", [0.22, 0.08, 0.16]))
     # agua: brillo especular + reflejo de cielo al rasante (fresnel)
-    ndv = np.clip(n[:, 2], 0, 1)
+    ndv = np.clip(n_geo[:, 2], 0, 1)
     H = (L + V) / np.linalg.norm(L + V)
-    ndh = np.clip(n @ H, 0, 1)
+    ndh = np.clip(n_geo @ H, 0, 1)
     spec = np.power(ndh, p.get("shine", 90)) * p.get("spec", 0.9) + np.power(ndh, 8) * p.get("sheen", 0.05)
     fres = np.power(1 - ndv, p.get("fres_pow", 4)) * p.get("fres", 0.25)
     sky = np.array(p.get("sky", [0.3, 0.4, 0.6]))
-    litf = np.clip(ndl * 3 + 0.3, 0, 1)
-    col += (water * spec * np.clip(ndl * 4, 0, 1))[:, None] * np.array(p.get("spec_col", [1, 0.98, 0.94]))
+    litf = np.clip(ndl_g * 3 + 0.3, 0, 1)
+    col += (water * spec * np.clip(ndl_g * 4, 0, 1))[:, None] * np.array(p.get("spec_col", [1, 0.98, 0.94]))
     col = col * (1 - (water * fres * litf)[:, None]) + (water * fres * litf)[:, None] * sky
     # neblina en el limbo
-    haze = np.power(1 - ndv, p.get("haze_pow", 3.0)) * p.get("haze", 0.5) * np.clip(ndl + 0.25, 0, 1)
+    haze = np.power(1 - ndv, p.get("haze_pow", 3.0)) * p.get("haze", 0.5) * np.clip(ndl_g + 0.25, 0, 1)
     col += haze[:, None] * np.array(p.get("atmo", [0.35, 0.6, 0.8]))
     return col
 
@@ -113,13 +124,43 @@ def atmosphere_ring(xx, yy, r_px, light, p):
     return a
 
 
-def render_sphere(albedo_png, size, lon0, lat0, roll, light, p, land_png=None, radius=0.82):
+def height_slopes(height):
+    """Pendientes de un mapa de alturas equirrectangular (alturas en unidades del radio).
+
+    Devuelve (este, norte): derivada de la altura por radián de arco recorrido
+    sobre la superficie, lista para inclinar la normal.
+    """
+    h = np.asarray(height, np.float32)
+    H, W = h.shape
+    lat = np.radians(90 - (np.arange(H) + 0.5) / H * 180)
+    d_lon = (np.roll(h, -1, axis=1) - np.roll(h, 1, axis=1)) * (W / (4 * np.pi))
+    d_lat = -np.gradient(h, axis=0) * (H / np.pi)
+    east = d_lon / np.maximum(np.cos(lat), 0.05)[:, None]
+    return east.astype(np.float32), d_lat.astype(np.float32)
+
+
+def render_sphere(albedo_png, size, lon0, lat0, roll, light, p, land_png=None, radius=0.82,
+                  height=None, bump=0.0, ss=1):
+    """Esfera iluminada con el mapa dado.
+
+    height: mapa de alturas (array equirrectangular, en unidades del radio) o
+    ruta a un PNG de 16 bits normalizado (entonces p["height_range"] = (min, max)).
+    bump: exageración del relieve al inclinar las normales (0 = esfera lisa).
+    ss: supermuestreo por lado (el disco se calcula a size·ss y se promedia en lineal).
+    """
     tex = srgb_to_lin(load(albedo_png))
     land = load(land_png, "L") if land_png else None
+    slopes = None
+    if height is not None and bump:
+        if isinstance(height, str):
+            lo, hi = p.get("height_range", (0.0, 1.0))
+            height = lo + (hi - lo) * np.asarray(Image.open(height), np.float32) / 65535.0
+        slopes = height_slopes(height)
     M = view_matrix(lon0, lat0, roll)
-    ys, xs = np.mgrid[0:size, 0:size].astype(np.float32)
-    xx = (xs + 0.5 - size / 2) / (size / 2 * radius)
-    yy = -(ys + 0.5 - size / 2) / (size / 2 * radius)
+    n_px = size * ss
+    ys, xs = np.mgrid[0:n_px, 0:n_px].astype(np.float32)
+    xx = (xs + 0.5 - n_px / 2) / (n_px / 2 * radius)
+    yy = -(ys + 0.5 - n_px / 2) / (n_px / 2 * radius)
     r2 = xx ** 2 + yy ** 2
     inside = r2 <= 1
     z = np.sqrt(np.clip(1 - r2, 0, 1))
@@ -130,16 +171,29 @@ def render_sphere(albedo_png, size, lon0, lat0, roll, light, p, land_png=None, r
     v = (90 - lat) / 180
     alb = bilinear(tex, u, v)
     water = 1 - bilinear(land, u, v) if land is not None else np.ones(len(n), np.float32)
-    col = shade(n, alb, water, light, p)
-    img = np.zeros((size, size, 4), np.float32)
+    nb = n
+    if slopes is not None:
+        # relieve: la normal se inclina contra la pendiente, en el marco este/norte local
+        se, sn = bilinear(slopes[0], u, v), bilinear(slopes[1], u, v)
+        lo_r, la_r = np.radians(lon), np.radians(lat)
+        east = np.stack([np.cos(lo_r), np.zeros_like(lo_r), -np.sin(lo_r)], -1)
+        north = np.stack([-np.sin(la_r) * np.sin(lo_r), np.cos(la_r), -np.sin(la_r) * np.cos(lo_r)], -1)
+        wb = wn - bump * (se[:, None] * east + sn[:, None] * north)
+        wb /= np.linalg.norm(wb, axis=-1, keepdims=True)
+        nb = wb @ M.T
+    col = shade(nb, alb, water, light, p, n_geo=n)
+    img = np.zeros((n_px, n_px, 4), np.float32)
     img[inside, :3] = col
     # antialias del borde
-    edge = np.clip((1 - np.sqrt(r2)) * size / 2 * radius, 0, 1)
+    edge = np.clip((1 - np.sqrt(r2)) * n_px / 2 * radius, 0, 1)
     img[..., 3] = np.where(inside, edge, 0)
-    a = atmosphere_ring(xx, yy, size / 2 * radius, light, p)
+    a = atmosphere_ring(xx, yy, n_px / 2 * radius, light, p)
     atmo = srgb_to_lin(np.array(p.get("atmo_rgb", [0.5, 0.75, 0.95])))
     img[..., :3] = img[..., :3] * img[..., 3:4] + (a[..., None] * atmo) * (1 - img[..., 3:4])
     img[..., 3] = np.clip(img[..., 3] + a * (1 - img[..., 3]), 0, 1)
+    if ss > 1:
+        # promedio en lineal y premultiplicado: color y alfa ya van multiplicados
+        img = img.reshape(size, ss, size, ss, 4).mean(axis=(1, 3))
     return finish(img)
 
 

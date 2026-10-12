@@ -5,7 +5,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 const { chromium } = createRequire(import.meta.url)(process.env.PW_PATH || 'playwright');
 const [frag, out, w = '1600', h = '1000', uni = '{}'] = process.argv.slice(2);
-const src = fs.readFileSync(frag, 'utf8');
+// #include "archivo" se sustituye por el contenido del archivo (relativo al shader)
+const src = fs.readFileSync(frag, 'utf8').replace(/^#include "(.+)"$/gm,
+  (_, f) => fs.readFileSync(path.join(path.dirname(frag), f), 'utf8'));
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: +w, height: +h } });
 page.on('console', m => console.log('[page]', m.text()));

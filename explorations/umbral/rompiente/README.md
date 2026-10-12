@@ -1,4 +1,4 @@
-# Umbral · La Rompiente (ronda 5)
+# Umbral · La Rompiente (rondas 5 y 6)
 
 Dirección de arte de planeta y entorno para **La Rompiente**, el alero costero
 de la isla principal de Umbral. Para evaluación: la dirección no está aprobada.
@@ -49,3 +49,35 @@ python3 orbit.py
 
 (`PW_PATH` debe apuntar a la instalación de Playwright; por defecto
 `/opt/node-tools/node_modules/playwright`.)
+
+## Ronda 6 · refinamiento y La Cala Interior
+
+Página: `ronda6/index.html` (artifact privado aparte, para poder comparar con la ronda 5).
+
+| | Archivo | Qué es |
+|---|---|---|
+| I | `img/r6-orbita.png`, `img/r6-orbita-escala.png` | Vista orbital refinada (batimetría, canales de marea, relieve) |
+| II | `img/r6-pleamar.png`, `img/r6-bajamar.png` | La Rompiente con la nueva geología, misma cámara |
+| III | `img/r6-cala.png`, `img/cala-corte.png` | La Cala Interior: vista principal y corte de continuidad |
+| IV | `img/r6-seq-1.png` … `img/r6-seq-6.png` | Secuencia de descubrimiento |
+| V | `ronda6/index.html` | Prototipo interactivo de las Gradas en planta (canvas) |
+
+Novedades en el código:
+
+- `src/shader/common.glsl`: ruido y la **columna estratigráfica** por paquetes
+  (61 bancos, búsqueda binaria) que comparten La Rompiente y la Cala.
+  `run.mjs` resuelve `#include "archivo"`.
+- `src/shader/rompiente.frag`: techo del alero en losas escalonadas con
+  cicatrices de caída, farallones como prismas de diaclasas (arco, farallón,
+  tocón), rasa calmada, luz cálida al fondo del túnel y la dolina del jameo.
+- `src/shader/cala.frag`: La Cala Interior en las mismas coordenadas. Uniformes
+  de la interacción: `L` (marea en la sala), `PULSE` (fila de origen, frente,
+  rama, intensidad), `STONE` (piedra en el rebosadero norte) y `FED`
+  (farolillos alimentados). `DBG ≥ 100` corta la sala a z = DBG; `DBG = 3`
+  devuelve la posición de cada píxel.
+- `src/cala_section.py`: corte de continuidad a partir de los cortes de ambos
+  volúmenes. `src/post_cala.py` y `src/paintfx.py`: acabado pictórico y figura.
+
+Cámaras de la Cala: vista principal `(104, 1, 386) → (78, −10, 430)`, FOV 74°;
+secuencia `(60, 0, 396) → (98, −12, 434)`, FOV 72°. Los parámetros de cada
+fotograma están en `src/shader/cala_frames.sh`.

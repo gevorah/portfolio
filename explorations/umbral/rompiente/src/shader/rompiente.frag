@@ -12,18 +12,7 @@ out vec4 o;
 #define LOWW -24.0
 const vec3 SUN = normalize(vec3(-0.62, 0.50, -0.60));
 
-// ---------------------------------------------------------------- ruido
-float h21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
-float h31(vec3 p){ p = fract(p*0.3183099 + 0.1); p *= 17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
-float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
-  return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
-float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
-  return mix(mix(mix(h31(i), h31(i+vec3(1,0,0)), f.x), mix(h31(i+vec3(0,1,0)), h31(i+vec3(1,1,0)), f.x), f.y),
-             mix(mix(h31(i+vec3(0,0,1)), h31(i+vec3(1,0,1)), f.x), mix(h31(i+vec3(0,1,1)), h31(i+vec3(1,1,1)), f.x), f.y), f.z); }
-float fb2(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a*n2(p); p = p*2.03 + 7.1; a *= 0.5; } return s; }
-float fb3(vec3 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++){ s += a*n3(p); p = p*2.07 + 3.3; a *= 0.5; } return s; }
-
-float segd(vec2 p, vec2 a, vec2 b){ vec2 pa = p-a, ba = b-a; float h = clamp(dot(pa,ba)/dot(ba,ba), 0.0, 1.0); return length(pa - ba*h); }
+#include "common.glsl"
 
 // ---------------------------------------------------------------- geografía
 // La isla en planta: un cuerpo y un brazo que se curva hacia el suroeste.
@@ -31,7 +20,6 @@ float segd(vec2 p, vec2 a, vec2 b){ vec2 pa = p-a, ba = b-a; float h = clamp(dot
 const vec2 A0 = vec2(300.0, 700.0), A1 = vec2(110.0, 470.0), A2 = vec2(55.0, 330.0), A3 = vec2(25.0, 240.0);
 const vec2 S0 = vec2(-20.0, 440.0), S1 = vec2(-58.0, 432.0), S2 = vec2(-92.0, 482.0), S3 = vec2(-130.0, 542.0);
 
-float smin(float a, float b, float k){ float h = clamp(0.5 + 0.5*(b - a)/k, 0.0, 1.0); return mix(b, a, h) - k*h*(1.0 - h); }
 
 float armCx(float z){
   if (z < 330.0) return mix(A3.x, A2.x, clamp((z - A3.y)/(A2.y - A3.y), 0.0, 1.0)) - 30.0*max(A3.y - z, 0.0)/90.0;
@@ -55,8 +43,6 @@ float landH(vec2 q, float s){
 }
 
 // estratos: misma serie en todo el lugar (acantilado, farallones, isleta)
-float strataQ(vec3 p){ float q = (p.y + 0.035*p.z - 0.02*p.x)/7.0 + 0.35*n2(p.xz*0.012); return q + 0.22*sin(q*1.9); }
-float softLayer(vec3 p){ float f = fract(strataQ(p)); return smoothstep(0.0, 0.12, f)*(1.0 - smoothstep(0.5, 0.62, f)); }
 
 // la rasa mareal: plataforma tallada por el mar al pie del acantilado
 const vec2 CH0 = vec2(-100.0, 296.0), CH1 = vec2(-66.0, 318.0), CH2 = vec2(-34.0, 334.0), CH3 = vec2(-4.0, 350.0);
@@ -76,7 +62,7 @@ float rasaH(vec2 q, float e){
   float h = -17.6 - 2.6*(1.0 - smoothstep(0.0, 60.0, e)) + 0.5*fb2(q*0.03);
   float f = fract(ribQ(q));
   float hard = step(0.45, h21(vec2(floor(ribQ(q)), 1.0)));
-  h += (0.10 + 0.32*hard)*smoothstep(0.0, 0.25, f)*(1.0 - smoothstep(0.5, 0.8, f));   // costillas bajas
+  h += (0.05 + 0.14*hard)*smoothstep(0.0, 0.25, f)*(1.0 - smoothstep(0.5, 0.8, f));   // costillas bajas, apenas
   h += 0.7*smoothstep(0.42, 0.58, n2(q*0.012 + 4.0));          // escalones de abrasión, suaves
   // cabezas de arrecife: asoman apenas en pleamar y rompen la ola
   float heads = smoothstep(0.70, 0.85, n2(q*0.035 + 31.0))*exp(-pow((e - 12.0)/12.0, 2.0));
@@ -101,27 +87,40 @@ const vec2 B0 = vec2(-130.0, 542.0), B1 = vec2(-70.0, 650.0), B2 = vec2(30.0, 76
 float barD(vec2 q){ return min(min(segd(q, B0, B1), segd(q, B1, B2)), segd(q, B2, B3)); }
 const vec2 ISLETA = vec2(160.0, 840.0);
 
-// farallones: lo que quedó de la punta derrumbada de La Rompiente
-float stack(vec3 p, vec2 c, float r, float top, float seed){
+// farallones: lo que dejó el retroceso del acantilado. Los cortan las mismas dos
+// familias de diaclasas que la pared (una paralela a la costa, otra transversal), por
+// eso son prismas romboidales y no columnas. Cuentan la secuencia de la erosión:
+// arco → farallón → tocón.
+const vec2 J1 = vec2(0.931, -0.366), J2 = vec2(0.0, 1.0);
+float stack(vec3 p, vec2 c, vec2 hs, float top, float seed, float arch){
   vec2 d = p.xz - c;
-  d -= vec2(0.10, 0.04)*max(p.y + 18.0, 0.0);               // inclinación del estrato
-  float q = strataQ(p);
-  float k = floor(q), f = fract(q);
-  // cada capa resiste distinto: unas sobresalen, otras se vacían
-  float lr = 0.80 + 0.45*h21(vec2(k, seed));
-  float lr2 = 0.80 + 0.45*h21(vec2(k + 1.0, seed));
-  float layer = mix(lr, lr2, smoothstep(0.82, 1.0, f));
-  vec2 off = (vec2(h21(vec2(k, seed + 3.0)), h21(vec2(k, seed + 5.0))) - 0.5)*r*0.35*smoothstep(-2.0, 12.0, p.y);
-  d -= off;
+  d -= vec2(0.07, 0.025)*max(p.y + 18.0, 0.0);              // se vence hacia el mar
   float ft = clamp((p.y + 18.0)/(top + 18.0), 0.0, 1.0);
-  float rr = r*layer*(1.2 - 0.5*ft*ft);
-  rr *= 1.0 + 0.3*smoothstep(-4.0, -20.0, p.y);             // pie ancho
-  rr *= 1.0 - 0.28*smoothstep(-6.0, 1.0, p.y)*smoothstep(4.0, -2.0, p.y); // muesca de marea
-  float ang = atan(d.y, d.x);
-  rr *= 1.0 + 0.22*(n2(vec2(ang*1.6 + seed, k*0.7)) - 0.5)*2.0 + 0.12*sin(ang*2.0 + seed);
-  float side = length(d*vec2(1.0, 1.25)) - rr + 1.2*(n3(p*0.25) - 0.5);
-  float tp = p.y - (top + 5.0*n2(p.xz*0.08 + seed) - 0.06*dot(d, d));
-  return max(side*0.6, tp);
+  vec4 bd = bed(p);
+  float taper = 1.12 - 0.38*ft*ft;
+  taper *= 1.0 + 0.35*smoothstep(-6.0, -22.0, p.y);         // pie ensanchado por la abrasión
+  taper *= 1.0 - 0.22*exp(-pow((p.y + 1.0)/3.0, 2.0)) - 0.16*exp(-pow((p.y + 15.0)/2.5, 2.0));   // muescas de marea
+  float a1 = abs(dot(d, J1)) - hs.x*taper, a2 = abs(dot(d, J2)) - hs.y*taper;
+  float k = 1.4;                                            // aristas apenas romas
+  float side = max(a1, a2) + 0.0;
+  side = -smin(-a1, -a2, k);
+  // las cornisas solo se marcan en la cara que mira al mar; las otras son planos de diaclasa
+  float seaward = smoothstep(-0.1, 0.7, dot(normalize(d + 1e-4), -J1));
+  side += (0.12*bedRelief(bd) + 0.25*packageRecess(p))*seaward + 0.8*(fb3(p*vec3(0.06, 0.03, 0.06) + seed) - 0.5);
+  // una diaclasa vertical abre una grieta en la cara larga
+  float cleft = abs(dot(d, J2) - hs.y*0.25*sin(seed*3.0)) - 0.5;
+  side = max(side, -max(cleft, -(p.y - top*0.15))*0.8);
+  // un bloque desprendido en una esquina alta
+  vec2 cq = vec2(dot(d, J1), dot(d, J2)) - vec2(hs.x, hs.y)*vec2(0.9, -0.7)*sign(sin(seed));
+  float notch = max(max(abs(cq.x) - hs.x*0.55, abs(cq.y) - hs.y*0.6), -(p.y - top*0.55));
+  side = max(side, -notch);
+  float tp = p.y - (top + 3.0*n2(p.xz*0.1 + seed) - 0.035*dot(d, d) - 4.0*step(0.5, n2(p.xz*0.15 + seed)));
+  float sd = max(side*0.6, tp);
+  if (arch > 0.5) {                                          // arco: el mar perfora la diaclasa transversal
+    vec2 ae = vec2(dot(d, J2)/7.0, (p.y + 11.0)/15.0);
+    sd = max(sd, -(length(ae) - 1.0)*5.0);
+  }
+  return sd;
 }
 
 float islandDome(vec2 q, vec2 c, vec2 r, float h){
@@ -142,13 +141,21 @@ vec2 map(vec3 p){
     float O = overhang(q);
     float ct = crestH(q, O);
     float t = clamp((p.y + 18.0)/(ct + 18.0), 0.0, 1.0);
-    float face = -O*pow(t, 3.6);
+    vec4 bd = bed(p);
+    // techo escalonado: cada banco vuela desde su propia base, como losas en voladizo
+    float yBase = p.y - bd.y*bd.z;
+    float tb = clamp((yBase + 18.0)/(ct + 18.0), 0.0, 1.0);
+    float face = -O*pow(mix(t, tb, 0.85*(1.0 - smoothstep(3.5, 9.0, bd.z))), 3.6);
+    // cicatrices: tramos de losa caídos entre diaclasas
+    float cell = floor((p.z + bd.x*7.3)/(9.0 + 2.0*bd.z) + 0.3*n2(vec2(p.z*0.03, bd.x)));
+    float fell = step(h21(vec2(cell, bd.x + 2.0)), 0.3)*smoothstep(0.5, 0.75, t)*smoothstep(0.4, 0.7, bd.w)*(1.0 - smoothstep(6.0, 9.0, bd.z));
+    face += fell*(2.0 + 4.0*h21(vec2(cell, bd.x + 5.0)))*smoothstep(0.0, 18.0, O);
     face += 0.30*max(p.y, 0.0)*(1.0 - westness(q));        // fuera de la cara oeste, acantilado tendido
     face += 5.0*exp(-pow((p.y + 1.0)/3.5, 2.0));            // muesca de pleamar
     face += 4.0*exp(-pow((p.y + 15.0)/3.0, 2.0));           // muesca de bajamar
-    face += (0.3 + 1.8*h21(vec2(floor(strataQ(p)), 9.0)))*softLayer(p);   // estratos: cada capa se vacía distinto
+    face += bedRelief(bd) + packageRecess(p);               // estratos: relieve por paquetes y cornisas
     face += 7.0*(n2(vec2(p.z*0.045 + p.x*0.02, p.y*0.012)) - 0.5);   // contrafuertes
-    face += 5.0*(fb3(p*0.025) - 0.5) + 2.0*(n3(p*0.12) - 0.5) + 9.0*t*t*(fb3(p*vec3(0.05, 0.02, 0.05) + 3.0) - 0.5);
+    face += 4.0*(fb3(p*0.02) - 0.5) + 0.8*(n3(p*0.15) - 0.5);
     float jz = p.z/53.0 + 0.012*p.y + 0.6*n2(vec2(p.y*0.015, p.z*0.006));
     float j = abs(fract(jz) - 0.5)*53.0;
     face += (0.5 + 2.0*h21(vec2(floor(jz), 4.0)))*(1.0 - smoothstep(0.0, 4.0, j));            // diaclasas irregulares
@@ -159,6 +166,8 @@ vec2 map(vec3 p){
     float bump = 1.0 - smoothstep(0.0, 75.0, s);
     float top = mix(lh, ct + 6.0*wv*(1.0 - smoothstep(-O, 0.0, s)), bump*smoothstep(0.0, 0.3, wv)) - 7.0*wv*(1.0 - smoothstep(-O - 2.0, -O + 10.0, s))*(0.6 + 0.8*n2(q*0.06))
               - 4.0*exp(-pow(s/5.0, 2.0))*(1.0 - wv) + 4.0*(fb2(q*0.03) - 0.5);
+    // la dolina del jameo: el techo hundido de La Cala Interior (cala.frag, K = (56, 390))
+    top -= 30.0*(1.0 - smoothstep(16.0, 52.0, length(q - vec2(56.0, 390.0))))*smoothstep(0.0, 20.0, s);
     float dTop = p.y - top;
     float d = max(dSide*0.6, dTop*0.7);
     // labio: un borde grueso que se vence ligeramente hacia abajo
@@ -211,9 +220,9 @@ vec2 map(vec3 p){
   }
   // --- farallones
   {
-    float d = stack(p, S1, 7.0, -4.0, 7.0);
-    d = min(d, stack(p, S2, 12.0, 48.0, 4.0));
-    d = min(d, stack(p, S3, 9.0, 30.0, 1.0));
+    float d = stack(p, S1, vec2(8.0, 6.0), -4.0, 7.0, 0.0);
+    d = min(d, stack(p, S2, vec2(11.0, 8.0), 48.0, 4.0, 0.0));
+    d = min(d, stack(p, S3, vec2(9.0, 15.0), 30.0, 1.0, 1.0));
     if (d < res.x) res = vec2(d, 4.0);
   }
   // --- barra de arena
@@ -277,10 +286,10 @@ vec2 march(vec3 ro, vec3 rd, float tmax, int n){
 
 float shadow(vec3 ro, vec3 rd){
   float res = 1.0, t = 0.8;
-  for (int i = 0; i < 70; i++) {
+  for (int i = 0; i < 110; i++) {
     float h = map(ro + rd*t).x;
-    res = min(res, 10.0*h/t);
-    t += clamp(h, 0.6, 30.0);
+    res = min(res, 8.0*h/t);
+    t += clamp(h, 0.25, 25.0);
     if (res < 0.001 || t > 700.0) break;
   }
   return clamp(res, 0.0, 1.0);
@@ -328,14 +337,24 @@ vec3 layerCol(float k){
   return c;
 }
 vec3 rockCol(vec3 p, vec3 n){
-  float q = strataQ(p);
-  float k = floor(q), f = fract(q);
-  vec3 c = mix(layerCol(k), layerCol(k + 1.0), smoothstep(0.75, 1.0, f));
-  c *= 1.0 - 0.10*softLayer(p);
-  c *= 0.90 + 0.10*n3(p*0.15) + 0.08*n3(p*0.7);
-  // regueros de escorrentía bajo los salientes
-  float streak = smoothstep(0.55, 0.9, n2(vec2(p.x*0.3 + p.z*0.3, p.y*0.012)));
-  c *= 1.0 - 0.22*streak*smoothstep(0.3, -0.2, n.y);
+  vec4 b = bed(p);
+  int i = int(b.x);
+  float ci = BC[i];
+  // una gama estrecha de pizarras; solo unos pocos bancos guía rompen el tono
+  vec3 slate = vec3(0.42, 0.46, 0.53), basalt = vec3(0.34, 0.37, 0.44), pale = vec3(0.60, 0.60, 0.61), rust = vec3(0.54, 0.43, 0.38);
+  vec3 c = slate;
+  c = mix(c, basalt, ci < 0.5 ? 0.55 : 0.0);
+  c = mix(c, pale, ci > 1.5 && ci < 2.5 ? (b.z > 3.0 ? 0.85 : 0.15) : 0.0);
+  c = mix(c, rust, ci > 2.5 ? (b.z < 1.3 ? 0.7 : 0.2) : 0.0);
+  c *= 1.0 + 0.05*smoothstep(1.0, 3.0, b.z)*(h21(vec2(b.x, 4.0)) - 0.5);   // los bancos finos no se distinguen uno a uno
+  float waist = smoothstep(20.0, 24.0, bedY(p))*(1.0 - smoothstep(32.0, 35.0, bedY(p)));
+  c *= 1.0 - 0.18*waist;                                    // la cintura blanda rezuma y se oscurece
+  c *= 0.93 + 0.07*n3(p*0.12) + 0.05*n3(p*0.6);
+  // regueros oscuros bajo los salientes y costras de sal en el techo
+  float streak = smoothstep(0.55, 0.85, n2(vec2(p.x*0.35 + p.z*0.35, p.y*0.01)));
+  c *= 1.0 - 0.25*streak*smoothstep(0.2, -0.3, n.y);
+  float salt = smoothstep(-0.4, -0.85, n.y)*smoothstep(0.55, 0.75, n3(p*0.18));
+  c = mix(c, vec3(0.74, 0.74, 0.72), 0.45*salt);
   return c;
 }
 
@@ -358,11 +377,11 @@ vec3 tidal(vec3 c, vec3 p, vec3 n){
   float mats = (1.0 - smoothstep(0.55, 0.75, rq)*(1.0 - smoothstep(0.92, 1.0, rq)))*0.0 + smoothstep(0.6, 0.8, rq)*smoothstep(0.35, 0.55, n2(p.xz*0.06 + 5.0));
   float crust = smoothstep(0.66, 0.70, n2(p.xz*0.11 + 9.0));
   barn = mix(barn, crust*0.7, flr);
-  alg = mix(alg, mats*smoothstep(-10.0, -13.0, y), flr);
+  alg = mix(alg, 0.5*mats*smoothstep(-19.0, -21.0, y), flr);
   kelp = mix(kelp, smoothstep(0.66, 0.70, n2(p.xz*0.05 + 17.0))*smoothstep(-19.0, -22.0, y), flr);
   w = mix(w, vec3(0.64, 0.64, 0.60), barn*(0.3 + 0.4*n3(p*1.2)));
-  w = mix(w, vec3(0.20, 0.32, 0.22), alg*0.8);
-  w = mix(w, vec3(0.30, 0.27, 0.16), kelp*0.85);
+  w = mix(w, vec3(0.22, 0.34, 0.25), alg*0.5);
+  w = mix(w, vec3(0.28, 0.26, 0.18), kelp*0.5);
   float cor = smoothstep(-16.0, -20.0, y)*smoothstep(0.74, 0.8, n3(p*0.9));
   w = mix(w, vec3(0.70, 0.52, 0.56), cor*0.25);
   return w;
@@ -382,10 +401,11 @@ vec3 shade(vec3 p, vec3 n, vec3 rd, float mat, float t, bool cheap){
     if (p.y < -16.0) c = vec3(0.78, 0.72, 0.58);
   } else {
     c = rockCol(p, n);
+    if (mat == 4.0) c = mix(c, vec3(0.44, 0.47, 0.53), 0.45);   // en los farallones los estratos se leen por la forma, no por el color
     if (mat == 2.0) {
       float rq = ribQ(p.xz);
       float hard = step(0.45, h21(vec2(floor(rq), 1.0)));
-      c = mix(vec3(0.27, 0.30, 0.33), vec3(0.46, 0.48, 0.50), hard*smoothstep(0.1, 0.2, fract(rq))*(1.0 - smoothstep(0.55, 0.7, fract(rq))));
+      c = mix(vec3(0.27, 0.30, 0.33), vec3(0.30, 0.32, 0.35), hard*smoothstep(0.1, 0.2, fract(rq))*(1.0 - smoothstep(0.55, 0.7, fract(rq))));
     }
     if (mat == 7.0) c = mix(c, vec3(0.62, 0.62, 0.62), 0.25);
     c = tidal(c, p, n);
@@ -399,7 +419,7 @@ vec3 shade(vec3 p, vec3 n, vec3 rd, float mat, float t, bool cheap){
     c = mix(c, g, veg);
     // pozas y canal en bajamar
     if (mat == 2.0 && p.y < -12.0 && p.y > L) {
-      float pool = smoothstep(0.655, 0.665, n2(p.xz*0.045 + 11.0)) + (1.0 - step(5.5, channel(p.xz)));
+      float pool = smoothstep(0.675, 0.685, n2(p.xz*0.045 + 11.0)) + (1.0 - step(5.5, channel(p.xz)));
       if (pool > 0.5 && n.y > 0.93) {
         vec3 rf = reflect(rd, vec3(0, 1, 0));
         c = mix(vec3(0.16, 0.42, 0.42), sky(rf)*0.9, 0.55);
@@ -415,10 +435,14 @@ vec3 shade(vec3 p, vec3 n, vec3 rd, float mat, float t, bool cheap){
     }
   }
   // dentro de la cueva: vida que brilla en la penumbra (solo visible en bajamar)
-  float glowCave = 0.0;
-  if (p.y < -6.0 && p.y > L - 0.5) {
+  // y al fondo, la luz cálida del jameo de La Cala Interior entra por el túnel
+  float glowCave = 0.0, warmCave = 0.0;
+  if (p.y < 4.0 && p.x > -8.0) {
     float cd = caveD(p);
-    if (cd > -2.0 && cd < 3.0 && p.x > -6.0) glowCave = smoothstep(0.55, 0.8, n3(p*0.35))*smoothstep(-6.0, -20.0, p.y);
+    if (cd > -3.0 && cd < 3.0) {
+      glowCave = smoothstep(0.55, 0.8, n3(p*0.35))*smoothstep(-6.0, -20.0, p.y)*step(L - 0.5, p.y);
+      warmCave = smoothstep(8.0, 70.0, p.x)*(0.5 + 0.5*smoothstep(-0.2, 0.6, n.y));
+    }
   }
   // luz
   float dif = max(dot(n, SUN), 0.0);
@@ -435,6 +459,13 @@ vec3 shade(vec3 p, vec3 n, vec3 rd, float mat, float t, bool cheap){
     col += vec3(1.0, 0.85, 0.7)*0.35*pow(max(dot(n, h), 0.0), 40.0)*sh;
   }
   col += vec3(0.25, 0.95, 0.82)*0.9*glowCave;
+  col += vec3(1.0, 0.70, 0.42)*0.45*warmCave;                  // el sol del jameo, al fondo
+  // la rasa mojada refleja el cielo: grandes superficies tranquilas
+  if (mat == 2.0 && p.y > L && n.y > 0.85) {
+    vec3 rf = reflect(rd, n);
+    float fr = 0.02 + 0.98*pow(1.0 - max(dot(n, -rd), 0.0), 5.0);
+    col = mix(col, sky(rf)*0.8, clamp(fr*0.9, 0.0, 0.45));
+  }
   // borde cálido
   col += vec3(1.0, 0.7, 0.5)*0.12*pow(1.0 - max(dot(n, -rd), 0.0), 3.0)*dif;
   return col;
@@ -490,6 +521,8 @@ vec3 water(vec3 p, vec3 rd, float t){
 
 // ---------------------------------------------------------------- render
 void main(){
+  if (DBG > 99.0) { vec2 q = gl_FragCoord.xy/R; vec3 p = vec3(-110.0 + q.x*300.0, -45.0 + q.y*135.0, DBG);
+    vec2 m = map(p); o = vec4(m.x < 0.0 ? 1.0 : 0.0, m.y/10.0, 0.0, 1.0); return; }
   if (DBG < -1.5) { vec2 q = gl_FragCoord.xy/R; vec3 ro = vec3(-450.0 + q.x*900.0, 200.0, q.y*900.0);
     float t = 0.0; vec2 m; for (int i = 0; i < 400; i++) { m = map(ro - vec3(0, t, 0)); if (m.x < 0.03) break; t += m.x*0.7; if (t > 260.0) break; }
     float v = clamp((200.0 - t + 60.0)/200.0, 0.0, 1.0); float hi = floor(v*255.0)/255.0;
