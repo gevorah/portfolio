@@ -23,6 +23,14 @@ const { title, description } = Astro.props;
     <title>{title}</title>
     <script is:inline>
       document.documentElement.classList.add('js');
+      document.addEventListener('DOMContentLoaded', () => {
+        const root = document.documentElement;
+        if (root.dataset.experience === 'ready') return;
+        root.classList.remove('js');
+        console.error(
+          'Universe: the interactive layer did not start. Showing the static page.',
+        );
+      });
     </script>
   </head>
   <body>

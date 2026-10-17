@@ -28,6 +28,7 @@ export interface UniverseElements {
   protect: HTMLElement;
   worldMarkers: Map<string, HTMLElement>;
   starMarkers: Map<string, HTMLElement>;
+  onAvailabilityChange(available: boolean): void;
 }
 
 export interface UniverseStats {
@@ -45,6 +46,7 @@ const MIN_PIXEL_RATIO = 1;
 const AMBIENT_INTERVAL = 1000 / 30;
 const SUN_GLOW_RADIUS = 2.2;
 const VEIL_MARGIN = 14;
+const CONTEXT_RESTORE_GRACE = 2500;
 
 async function loadTexture(
   url: string,
@@ -496,17 +498,25 @@ export async function createUniverse(elements: UniverseElements) {
       document.removeEventListener('visibilitychange', onVisibility),
     );
 
+    let restoreTimer = 0;
     const onContextLost = (event: Event) => {
       event.preventDefault();
       contextLost = true;
+      restoreTimer = window.setTimeout(
+        () => elements.onAvailabilityChange(false),
+        CONTEXT_RESTORE_GRACE,
+      );
     };
     const onContextRestored = () => {
       contextLost = false;
+      window.clearTimeout(restoreTimer);
+      elements.onAvailabilityChange(true);
       invalidate();
     };
     canvas.addEventListener('webglcontextlost', onContextLost);
     canvas.addEventListener('webglcontextrestored', onContextRestored);
     cleanup.push(() => {
+      window.clearTimeout(restoreTimer);
       canvas.removeEventListener('webglcontextlost', onContextLost);
       canvas.removeEventListener('webglcontextrestored', onContextRestored);
     });

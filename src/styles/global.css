@@ -1002,13 +1002,6 @@ html:not(.js) .stage-entry + .stage-entry {
     width: min(36%, 30rem);
   }
 
-  .no-webgl .work-prompt,
-  .no-webgl .work-detail {
-    align-self: start;
-    justify-self: start;
-    width: min(100%, 34rem);
-  }
-
   .work [data-frame='atlas'] {
     inset: 10% 10%;
     --fit: 1;
@@ -1053,6 +1046,55 @@ html:not(.js) .stage-entry + .stage-entry {
       color-mix(in srgb, var(--color-void) 78%, transparent) 35%,
       transparent
     );
+  }
+}
+
+:is(html:not(.js), .no-webgl) :is(.work-content, .career-content) {
+  opacity: 1;
+}
+
+:is(html:not(.js), .no-webgl) :is(.work-detail, .career-content)::before {
+  content: none;
+}
+
+@media (width >= 56.25rem) {
+  :is(html:not(.js), .no-webgl) :is(.work, .career) {
+    display: block;
+  }
+
+  :is(html:not(.js), .no-webgl) :is(.work-content, .career-content) {
+    display: grid;
+    grid-template-columns: 5fr 6fr;
+    grid-template-areas:
+      'intro detail'
+      'index detail';
+    align-items: start;
+    gap: 0 4rem;
+    width: 100%;
+    min-height: 0;
+  }
+
+  :is(html:not(.js), .no-webgl) :is(.work-prompt, .career-intro) {
+    grid-area: intro;
+    align-self: start;
+    justify-self: stretch;
+    max-width: none;
+  }
+
+  :is(html:not(.js), .no-webgl) .stage-index {
+    grid-area: index;
+  }
+
+  :is(html:not(.js), .no-webgl) :is(.work-detail, .stage-panel) {
+    grid-area: detail;
+    align-self: start;
+    justify-self: stretch;
+    width: auto;
+    margin-top: 0;
+  }
+
+  html:not(.js) .work-detail {
+    margin-top: 0;
   }
 }
 

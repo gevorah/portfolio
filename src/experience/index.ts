@@ -18,8 +18,12 @@ import {
 import { resolveTimeline, sectionProgress } from './timeline';
 
 const root = document.documentElement;
-const one = <T extends HTMLElement>(selector: string) =>
-  document.querySelector<T>(selector)!;
+function one<T extends HTMLElement>(selector: string) {
+  const element = document.querySelector<T>(selector);
+  if (!element)
+    throw new Error(`Universe: missing required element ${selector}`);
+  return element;
+}
 const all = <T extends HTMLElement>(selector: string) => [
   ...document.querySelectorAll<T>(selector),
 ];
@@ -45,6 +49,14 @@ const stageDetails = byData('stage-detail');
 const stageButtons = byData('stage-select');
 const starMarkers = byData('star-marker');
 const navLinks = all<HTMLAnchorElement>('[data-nav]');
+const scene = one<HTMLCanvasElement>('#scene');
+const returnButton = one('[data-return]');
+const frames = {
+  hero: one('[data-frame="hero"]'),
+  atlas: one('[data-frame="atlas"]'),
+  focus: one('[data-frame="focus"]'),
+  career: one('[data-frame="career"]'),
+};
 
 const scrollBehavior = (): ScrollBehavior =>
   state.motion.transitions ? 'smooth' : 'auto';
@@ -120,7 +132,7 @@ function syncHistory(previous: string | null, next: string | null) {
 }
 
 function keepStageInView(frame: 'focus' | 'atlas') {
-  const stage = one(`[data-frame="${frame}"]`).getBoundingClientRect();
+  const stage = frames[frame].getBoundingClientRect();
   const hidden =
     stage.top < -stage.height * 0.25 || stage.top > window.innerHeight * 0.75;
   if (state.zone !== 'work' || hidden)
@@ -198,7 +210,7 @@ function stepWorld(direction: 1 | -1) {
   if (next) showWorld(next);
 }
 
-one('[data-return]').addEventListener('click', () => hideWorld());
+returnButton.addEventListener('click', () => hideWorld());
 stepButtons.forEach((button) =>
   button.addEventListener('click', () =>
     stepWorld(button.dataset.step === '1' ? 1 : -1),
@@ -276,7 +288,7 @@ function render() {
 
   const selected = selectedWorld();
   if (selected !== renderedWorld && !state.motion.transitions) {
-    one('#scene').animate([{ opacity: 0 }, {}], {
+    scene.animate([{ opacity: 0 }, {}], {
       duration: 260,
       easing: 'ease-out',
     });
@@ -323,23 +335,23 @@ if (linkedWorld) {
   history.replaceState(null, '', urlForWorld(window.location.href, null));
 }
 
+function setSceneAvailable(available: boolean) {
+  root.classList.toggle('no-webgl', !available);
+  if (available) invalidate();
+}
+
 async function startUniverse() {
-  const canvas = one<HTMLCanvasElement>('#scene');
   try {
     const { createUniverse } = await import('./scene/universe');
     const universe = await createUniverse({
-      canvas,
-      frames: {
-        hero: one('[data-frame="hero"]'),
-        atlas: one('[data-frame="atlas"]'),
-        focus: one('[data-frame="focus"]'),
-        career: one('[data-frame="career"]'),
-      },
+      canvas: scene,
+      frames,
       protect: workDetail,
       worldMarkers,
       starMarkers,
+      onAvailabilityChange: setSceneAvailable,
     });
-    canvas.toggleAttribute('data-ready', true);
+    scene.toggleAttribute('data-ready', true);
     invalidate();
     if (
       import.meta.env.DEV ||
@@ -349,8 +361,10 @@ async function startUniverse() {
     }
     import.meta.hot?.dispose(() => universe.dispose());
   } catch (error) {
-    root.classList.add('no-webgl');
+    setSceneAvailable(false);
     console.warn('Universe: the 3D scene could not start.', error);
   }
 }
+
+root.dataset.experience = 'ready';
 startUniverse();
