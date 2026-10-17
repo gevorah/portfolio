@@ -131,6 +131,7 @@ export function createRig(camera: THREE.PerspectiveCamera) {
 
   const anchor = new THREE.Vector3();
   let anchorRadius = 1;
+  let anchored = false;
   let viewOwner: string | null = null;
   let viewTarget: ViewCandidate = viewCandidates(0.3)[0];
   const viewNow: ViewCandidate = { ...viewTarget };
@@ -221,7 +222,7 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       atlas.view.copy(ATLAS_VIEW);
 
       if (focused) {
-        const arriving = state.focus < 0.02;
+        const arriving = state.focus < 0.02 || !anchored;
         if (viewOwner !== focused.id) composeFocus(input, focused);
         const glide = arriving ? 1 : input.damp(4);
         anchor.lerp(focused.position, glide);
@@ -233,6 +234,7 @@ export function createRig(camera: THREE.PerspectiveCamera) {
         viewDirection(anchor, viewNow, focus.view);
         focus.subject.copy(anchor);
         place(focus, frames.focus, anchorRadius, 1);
+        anchored = true;
         sunDirection.copy(anchor).negate().normalize();
         faceDirection
           .copy(focus.view)

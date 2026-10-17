@@ -388,14 +388,19 @@ export function mountExperience() {
     try {
       const { createUniverse } = await import('./scene/universe');
       if (signal.aborted) return;
-      const universe = await createUniverse({
-        canvas: scene,
-        frames,
-        protect: workDetail,
-        worldMarkers,
-        starMarkers,
-        onAvailabilityChange: setSceneAvailable,
-      });
+      const universe = await createUniverse(
+        {
+          canvas: scene,
+          frames,
+          protect: workDetail,
+          worldMarkers,
+          starMarkers,
+          onAvailabilityChange(available) {
+            if (!signal.aborted) setSceneAvailable(available);
+          },
+        },
+        signal,
+      );
       if (signal.aborted) {
         universe.dispose();
         return;
@@ -409,6 +414,7 @@ export function mountExperience() {
       if (inspecting)
         Object.assign(window, { __universe: universe, __experience: state });
     } catch (error) {
+      if (signal.aborted) return;
       setSceneAvailable(false);
       console.warn('Universe: the 3D scene could not start.', error);
     }

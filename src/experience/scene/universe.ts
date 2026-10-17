@@ -73,7 +73,10 @@ interface Projection {
   onScreen: boolean;
 }
 
-export async function createUniverse(elements: UniverseElements) {
+export async function createUniverse(
+  elements: UniverseElements,
+  signal: AbortSignal,
+) {
   const { canvas } = elements;
   const cleanup: Array<() => void> = [];
   const dispose = () => {
@@ -124,6 +127,7 @@ export async function createUniverse(elements: UniverseElements) {
       if (result.status === 'fulfilled')
         cleanup.push(() => result.value.dispose());
     });
+    signal.throwIfAborted();
     const failed = textures.find((result) => result.status === 'rejected');
     if (failed) throw failed.reason;
     const [albedo, data] = textures.map(
@@ -164,6 +168,7 @@ export async function createUniverse(elements: UniverseElements) {
     const deferred = [comet.group, nebula.group];
     deferred.forEach((group) => (group.visible = true));
     await renderer.compileAsync(scene, camera);
+    signal.throwIfAborted();
     deferred.forEach((group) => (group.visible = false));
 
     let width = 0;

@@ -3,6 +3,7 @@ import { expect, type Page } from '@playwright/test';
 declare global {
   interface Window {
     __draws: number;
+    __links: number;
     __experience: {
       focused: boolean;
       focusId: string | null;

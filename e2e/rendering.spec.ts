@@ -4,6 +4,7 @@ import {
   countDrawCalls,
   drawCallsDuring,
   open,
+  sampleScene,
   sceneCoverage,
   scrollTo,
   selectWorld,
@@ -223,4 +224,22 @@ test.describe('reduced motion in About', () => {
     );
     expect(await drawCallsDuring(page, 1500)).toBe(0);
   });
+});
+
+test('a project opened by URL is framed from the first frame of a late scene', async ({
+  page,
+}) => {
+  await page.route('**/_astro/universe.*.js', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await route.continue();
+  });
+  await page.goto('/?stats&world=finance');
+  await page.addStyleTag({ content: '#scene { transition: none; }' });
+  await page.waitForSelector('#scene[data-ready]', { timeout: 20_000 });
+  expect(await page.evaluate(() => window.__experience.focus)).toBe(1);
+  const first = await sampleScene(page, '#scene');
+  await page.waitForTimeout(2000);
+  const settled = await sampleScene(page, '#scene');
+  expect(Math.abs(first.center.x - settled.center.x)).toBeLessThan(20);
+  expect(Math.abs(first.center.y - settled.center.y)).toBeLessThan(20);
 });

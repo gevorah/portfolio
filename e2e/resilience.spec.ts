@@ -118,3 +118,42 @@ test.describe('static presentation', () => {
     }
   });
 });
+
+test('a scene replaced while loading stops before compiling its shaders', async ({
+  browser,
+}) => {
+  const countLinks = () => {
+    window.__links = 0;
+    const link = WebGL2RenderingContext.prototype.linkProgram;
+    WebGL2RenderingContext.prototype.linkProgram = function (program) {
+      window.__links += 1;
+      return link.call(this, program);
+    };
+  };
+  const linksAfter = async (replace: boolean) => {
+    const page = await browser.newPage();
+    await page.addInitScript(countLinks);
+    let requests = 0;
+    await page.route('**/textures/umbral/*.webp', async (route) => {
+      requests += 1;
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue();
+    });
+    await page.goto('/?stats');
+    if (replace) {
+      await expect.poll(() => requests).toBe(2);
+      await page.evaluate(() =>
+        (window as unknown as { __remount(): void }).__remount(),
+      );
+    }
+    await page.waitForSelector('#scene[data-ready]');
+    await page.waitForTimeout(1500);
+    await expect(page.locator('html')).not.toHaveClass(/no-webgl/);
+    const links = await page.evaluate(() => window.__links);
+    await page.close();
+    return links;
+  };
+  const single = await linksAfter(false);
+  expect(single).toBeGreaterThan(0);
+  expect(await linksAfter(true)).toBe(single);
+});
