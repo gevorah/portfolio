@@ -128,3 +128,71 @@ for (const { label, viewport, fontSize } of [
     }
   });
 }
+
+const clippedText = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => {
+    const clipped: string[] = [];
+    const walker = document.createTreeWalker(
+      document.querySelector('.site-main')!,
+      NodeFilter.SHOW_TEXT,
+    );
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const text = node.textContent!.trim();
+      const parent = node.parentElement!;
+      if (
+        !text ||
+        parent.closest('.sr-only') ||
+        !parent.checkVisibility({ visibilityProperty: true })
+      )
+        continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const line of range.getClientRects())
+        if (
+          line.width > 0 &&
+          (line.left < -0.5 || line.right > innerWidth + 0.5)
+        )
+          clipped.push(text);
+    }
+    return [...new Set(clipped)];
+  });
+
+for (const { width, height, fontSize } of [
+  { width: 320, height: 568, fontSize: 24 },
+  { width: 320, height: 568, fontSize: 32 },
+  { width: 390, height: 844, fontSize: 32 },
+  { width: 430, height: 932, fontSize: 32 },
+]) {
+  test(`enlarged text stays inside the viewport at ${width}×${height} with ${fontSize}px text`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: fontSize } });
+    await page.goto('/');
+    expect(await clippedText(page)).toEqual([]);
+  });
+}
+
+test.describe('with JavaScript', () => {
+  test.use({ javaScriptEnabled: true });
+
+  test('every career stage stays inside the viewport with 32px text at 320×568', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32 } });
+    await page.goto('/');
+    for (const stage of careerStages) {
+      await page
+        .locator(`[data-stage-select="${stage.id}"]`)
+        .evaluate((button: HTMLElement) => button.click());
+      await expect(
+        page.locator(`[data-stage-detail="${stage.id}"]`),
+      ).toHaveAttribute('data-active', '');
+      expect(await clippedText(page), stage.company).toEqual([]);
+    }
+  });
+});

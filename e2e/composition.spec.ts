@@ -236,3 +236,47 @@ for (const viewport of [
     expect(layout.starsBottom).toBeLessThan(layout.introTop);
   });
 }
+
+for (const { width, height, fontSize, columns } of [
+  { width: 320, height: 568, fontSize: 16, columns: 2 },
+  { width: 320, height: 568, fontSize: 24, columns: 1 },
+  { width: 320, height: 568, fontSize: 32, columns: 1 },
+  { width: 390, height: 844, fontSize: 32, columns: 1 },
+  { width: 1440, height: 900, fontSize: 32, columns: 2 },
+]) {
+  test(`About details stay readable at ${width}×${height} with ${fontSize}px text`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: fontSize } });
+    await open(page);
+    await scrollTo(page, 'about');
+    const details = await page.evaluate(() => {
+      const list = document.querySelector('.about-details')!;
+      const bounds = list.getBoundingClientRect();
+      const text = [...list.children].map((item) => {
+        const range = document.createRange();
+        range.selectNodeContents(item);
+        const lines = [...range.getClientRects()];
+        return {
+          left: Math.min(...lines.map((line) => line.left)),
+          right: Math.max(...lines.map((line) => line.right)),
+          top: Math.min(...lines.map((line) => line.top)),
+          bottom: Math.max(...lines.map((line) => line.bottom)),
+        };
+      });
+      return { bounds: { left: bounds.left, right: bounds.right }, text };
+    });
+    const [education, location] = details.text;
+    for (const item of details.text) {
+      expect(item.left).toBeGreaterThanOrEqual(details.bounds.left - 0.5);
+      expect(item.right).toBeLessThanOrEqual(details.bounds.right + 0.5);
+    }
+    const apart =
+      education.right <= location.left || education.bottom <= location.top;
+    expect(apart).toBe(true);
+    expect(location.top < education.bottom ? 2 : 1).toBe(columns);
+  });
+}

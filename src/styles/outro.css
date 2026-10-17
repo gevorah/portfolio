@@ -7,6 +7,10 @@
     line-height: 1;
   }
 
+  .about-title {
+    font-size: min(clamp(2.75rem, 12vw, 4.25rem), 100cqi / 3.3);
+  }
+
   .about-title span {
     display: block;
   }
@@ -27,6 +31,7 @@
   }
 
   .about-copy {
+    container-type: inline-size;
     max-width: 32rem;
   }
 
@@ -43,12 +48,20 @@
   }
 
   .about-details {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 1.5rem;
     margin-top: 2.5rem;
     padding-top: 1.4rem;
     border-top: 1px solid var(--color-ridge);
+  }
+
+  .about-details > div {
+    flex: 1.15 1 0;
+  }
+
+  .about-details > div + div {
+    flex-grow: 0.85;
   }
 
   .about-details dt {
@@ -262,7 +275,7 @@
     }
 
     .about-title {
-      font-size: clamp(3.75rem, 5.6vw, 5.75rem);
+      font-size: min(clamp(3.75rem, 5.6vw, 5.75rem), 100cqi / 3.3);
     }
 
     .contact {

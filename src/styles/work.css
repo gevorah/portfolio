@@ -31,8 +31,9 @@
   .world-index :is(button, a) {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.15rem 1rem;
     width: 100%;
     min-height: 2.875rem;
     padding: 0.7rem 0;
@@ -45,13 +46,13 @@
   }
 
   .world-index .name {
+    flex: 1 1 0;
     font-size: 1.0625rem;
     font-weight: 560;
     letter-spacing: -0.02em;
   }
 
   .world-index .kind {
-    flex: none;
     font-size: 0.8125rem;
     color: var(--color-haze);
   }

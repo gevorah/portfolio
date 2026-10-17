@@ -57,6 +57,7 @@
   }
 
   .stage-panel {
+    container-type: inline-size;
     margin-top: 1.75rem;
     padding-top: 1.25rem;
     border-top: 1px solid var(--color-ridge);
@@ -69,10 +70,11 @@
 
   .stage-entry h3 {
     margin-top: 0.8rem;
-    font-size: clamp(1.875rem, 3vw, 2.5rem);
+    font-size: min(clamp(1.875rem, 3vw, 2.5rem), 100cqi / 4.8);
     font-weight: 620;
     letter-spacing: -0.05em;
     line-height: 1.05;
+    overflow-wrap: break-word;
   }
 
   .stage-entry .role {
