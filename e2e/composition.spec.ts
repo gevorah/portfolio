@@ -150,3 +150,42 @@ test.describe('label states', () => {
     });
   }
 });
+
+for (const [width, height, fontSize] of [
+  [1440, 900, '100%'],
+  [390, 844, '100%'],
+  [320, 568, '100%'],
+  [768, 1024, '200%'],
+  [390, 500, '200%'],
+  [320, 568, '200%'],
+] as const) {
+  test(`header links stay reachable at ${width}×${height} with ${fontSize} text`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await open(page);
+    await page.evaluate(
+      (size) => (document.documentElement.style.fontSize = size),
+      fontSize,
+    );
+    const links = page.locator('.site-nav a:visible');
+    expect(await links.count()).toBeGreaterThanOrEqual(2);
+    for (const link of await links.all()) {
+      await link.focus();
+      const [brand, nav, target] = await page.evaluate(() =>
+        [
+          document.querySelector('.brand')!,
+          document.querySelector('.site-nav')!,
+          document.activeElement!,
+        ].map((element) => {
+          const { left, right } = element.getBoundingClientRect();
+          return { left, right };
+        }),
+      );
+      expect(nav.left).toBeGreaterThanOrEqual(brand.right);
+      expect(nav.right).toBeLessThanOrEqual(width);
+      expect(target.left).toBeGreaterThanOrEqual(nav.left - 1);
+      expect(target.right).toBeLessThanOrEqual(nav.right + 1);
+    }
+  });
+}
