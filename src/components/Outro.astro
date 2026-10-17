@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+
+import avatar from '@/assets/avatar.png';
+import { profile } from '@/data/profile';
+---
+
+<div class="outro" id="sobre-mi">
+  <section class="about" aria-labelledby="about-title">
+    <div>
+      <p class="about-portrait">
+        <Image
+          src={avatar}
+          alt="Avatar de gevorah: un ojo de reptil"
+          width={144}
+          height={144}
+        />
+        <span>
+          {profile.name}
+          <br />
+          {profile.location}
+        </span>
+      </p>
+      <h2 class="display" id="about-title">
+        Ingeniería
+        <span class="voice">con curiosidad.</span>
+      </h2>
+    </div>
+    <div class="about-body prose">
+      {profile.about.map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
+      <p>{profile.education}.</p>
+    </div>
+  </section>
+
+  <section
+    id="contacto"
+    aria-labelledby="contact-title"
+    style="margin-top: clamp(5rem, 12vw, 9rem)"
+  >
+    <h2 class="display" id="contact-title">
+      Hablemos
+      <span class="voice">de tu próximo mundo.</span>
+    </h2>
+    <ul class="contact-list">
+      {profile.contact.map((channel) => (
+        <li>
+          <a
+            href={channel.href}
+            {...(channel.href.startsWith('http')
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+          >
+            <span class="channel">{channel.label}</span>
+            <span class="address">{channel.value}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <p class="site-footer">
+      {profile.handle}, Small Worlds. Hecho con Astro y Three.js.
+    </p>
+  </section>
+</div>

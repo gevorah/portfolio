@@ -1,3 +1,13 @@
-dist
-node_modules
-.github
+# generated files
+dist/
+.astro/
+coverage/
+test-results/
+playwright-report/
+
+# local tooling
+.playwright-mcp/
+.claude/
+
+# lockfiles
+pnpm-lock.yaml

@@ -1,0 +1,167 @@
+---
+import { worlds } from '@/data/worlds';
+---
+
+<section class="screen work" id="trabajo" aria-labelledby="work-title">
+  <h2 class="sr-only" id="work-title">
+    Trabajo
+  </h2>
+  <div class="stage-slot" aria-hidden="true">
+    <div data-frame="atlas"></div>
+    <div data-frame="focus"></div>
+  </div>
+
+  <div class="work-content">
+    <div class="work-prompt">
+      <p class="display">
+        Elige un mundo.
+        <span class="voice">Acércate.</span>
+      </p>
+      <p class="prose">
+        Cada planeta reúne una parte de mi trabajo. Selecciona uno para conocer
+        su contexto y mi contribución, sin salir del sistema.
+      </p>
+      <ul class="world-index">
+        {worlds.map((world) => (
+          <li>
+            <button type="button" data-world-select={world.id}>
+              <span class="name">{world.name}</span>
+              <span class="kind">{world.kind}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="work-detail">
+      <div class="detail-controls">
+        <button type="button" class="back-button" data-return>
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+          >
+            <path d="M7 3 2 8l5 5M2 8h12"></path>
+          </svg>
+          Volver al sistema
+        </button>
+        <div class="steps">
+          <button
+            type="button"
+            class="round-button"
+            data-step="-1"
+            aria-label="Mundo anterior"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <path d="M10 3 5 8l5 5"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="round-button"
+            data-step="1"
+            aria-label="Mundo siguiente"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <path d="m6 3 5 5-5 5"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      {worlds.map((world) => (
+        <article
+          class="world-detail"
+          id={`mundo-${world.id}`}
+          data-world-detail={world.id}
+          aria-labelledby={`mundo-${world.id}-title`}
+          tabindex="-1"
+        >
+          <p class="world-meta" style="--i:0">
+            <span>
+              {[world.kind, world.context].filter(Boolean).join(', ')}
+            </span>
+            <span class="status">{world.status}</span>
+          </p>
+          <h3
+            class:list={['display', { 'is-long': world.name.length > 12 }]}
+            id={`mundo-${world.id}-title`}
+            style="--i:1"
+          >
+            {world.name}
+          </h3>
+          <p class="world-tagline" style="--i:2">
+            {world.tagline}
+          </p>
+          <p class="prose" style="--i:3">
+            {world.description}
+          </p>
+          {(world.role || world.technologies.length > 0) && (
+            <dl class="facts" style="--i:4">
+              {world.role && (
+                <>
+                  <dt>Mi papel</dt>
+                  <dd>{world.role}</dd>
+                </>
+              )}
+              {world.technologies.length > 0 && (
+                <>
+                  <dt>Tecnologías</dt>
+                  <dd>{world.technologies.join(', ')}</dd>
+                </>
+              )}
+            </dl>
+          )}
+          {world.actions.length > 0 && (
+            <ul class="world-actions" style="--i:5">
+              {world.actions.map((action) => (
+                <li>
+                  {action.href ? (
+                    <a class="action" href={action.href}>
+                      {action.label}
+                    </a>
+                  ) : (
+                    <span class="action" aria-disabled="true">
+                      {action.label} <small>Próximamente</small>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p class="world-note" style="--i:6">
+            {world.note}
+          </p>
+        </article>
+      ))}
+    </div>
+  </div>
+
+  <div class="markers" aria-hidden="true">
+    {worlds.map((world) => (
+      <button
+        type="button"
+        class="marker world-marker"
+        tabindex="-1"
+        data-world-marker={world.id}
+        data-stage={world.stage}
+        data-offstage
+      >
+        <span class="marker-label">{world.name}</span>
+      </button>
+    ))}
+  </div>
+</section>

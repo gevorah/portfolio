@@ -1,14 +1,26 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import Experience from '@/components/Experience.astro';
+import Career from '@/components/Career.astro';
 import Hero from '@/components/Hero.astro';
-import Stack from '@/components/Stack.astro';
+import Outro from '@/components/Outro.astro';
+import SiteHeader from '@/components/SiteHeader.astro';
+import Work from '@/components/Work.astro';
+import Layout from '@/layouts/Layout.astro';
 ---
 
-<Layout title="gevorah">
-  <main>
+<Layout
+  title="gevorah — Jhon Ijaji, software engineer"
+  description="Portfolio de Jhon Ijaji: desarrollo full stack con foco en frontend y creative development. Proyectos como mundos, trayectoria como constelación."
+>
+  <canvas class="universe" id="universe" aria-hidden="true"></canvas>
+  <SiteHeader />
+  <main class="site-main">
     <Hero />
-    <Experience />
-    <Stack />
+    <Work />
+    <Career />
+    <Outro />
   </main>
 </Layout>
+
+<script>
+  import '@/experience';
+</script>

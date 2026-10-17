@@ -1,4 +1,3 @@
-/** @type {import("prettier").Config} */
 export default {
   semi: true,
   singleQuote: true,
@@ -8,16 +7,9 @@ export default {
     'prettier-plugin-astro',
     'prettier-plugin-tailwindcss',
   ],
-  importOrder: [
-    '^(react/(.*)$)|^(react$)',
-    '<THIRD_PARTY_MODULES>',
-    '',
-    '^@/lib/(.*)$',
-    '^@/components/(.*)$',
-    '',
-    '^[.]',
-  ],
-  importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+  importOrder: ['<THIRD_PARTY_MODULES>', '', '^@/(.*)$', '', '^[.]'],
+  importOrderParserPlugins: ['typescript'],
+  tailwindStylesheet: './src/styles/global.css',
   overrides: [
     {
       files: '*.astro',
@@ -26,5 +18,4 @@ export default {
       },
     },
   ],
-  tailwindFunctions: ['cn', 'cva'],
 };

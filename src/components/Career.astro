@@ -1,0 +1,75 @@
+---
+import { careerStages, defaultStageId } from '@/data/career';
+import { constellation } from '@/experience/scene/looks';
+
+const years = (period: string) =>
+  (period.match(/\d{4}|actualidad/g) ?? [])
+    .filter((value, index, all) => all.indexOf(value) === index)
+    .join(' – ');
+---
+
+<section class="screen career" id="trayectoria" aria-labelledby="career-title">
+  <div class="stage-slot" aria-hidden="true">
+    <div data-frame="career"></div>
+  </div>
+
+  <div class="career-content">
+    <h2 class="display" id="career-title">
+      Otra forma
+      <span class="voice">de mirar atrás.</span>
+    </h2>
+    <p class="prose">
+      Cada estrella es una etapa profesional. Las líneas no son órbitas: dibujan
+      el recorrido, de la primera plataforma al equipo que lidero hoy.
+    </p>
+    <ol class="stage-index">
+      {careerStages.map((stage) => (
+        <li>
+          <button
+            type="button"
+            data-stage-select={stage.id}
+            aria-pressed={stage.id === defaultStageId ? 'true' : 'false'}
+          >
+            <span class="company">{stage.company}</span>
+            <span class="years">{years(stage.period)}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
+    <div class="stage-detail" aria-live="polite">
+      {careerStages.map((stage) => (
+        <article
+          class="stage-entry"
+          data-stage-detail={stage.id}
+          data-active={stage.id === defaultStageId ? '' : undefined}
+        >
+          <h3 style="--i:0">{stage.company}</h3>
+          <p class="role" style="--i:1">
+            {stage.role}. {stage.period}
+          </p>
+          <ul style="--i:2">
+            {stage.highlights.map((highlight) => (
+              <li>{highlight}</li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+  </div>
+
+  <div class="markers" aria-hidden="true">
+    {careerStages.map((stage) => (
+      <button
+        type="button"
+        class="marker star-marker"
+        tabindex="-1"
+        data-star-marker={stage.id}
+        data-label={constellation[stage.id]?.label}
+        aria-pressed={stage.id === defaultStageId ? 'true' : 'false'}
+        data-offstage
+      >
+        <span class="marker-label">{stage.shortName ?? stage.company}</span>
+      </button>
+    ))}
+  </div>
+</section>

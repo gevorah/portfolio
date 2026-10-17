@@ -1,48 +1,31 @@
 ---
+import '@fontsource-variable/instrument-sans';
+import '@fontsource/instrument-serif/400-italic.css';
+import '@/styles/global.css';
+
 interface Props {
   title: string;
-  description?: string;
+  description: string;
 }
 
-const { title, description = '' } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/png" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0e0c13" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/icon.png" />
     <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
-      rel="stylesheet"
-    />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
   </head>
   <body>
-    <div class="mx-auto max-w-screen-lg">
-      <slot />
-    </div>
+    <slot />
   </body>
 </html>
-<style is:global>
-  html {
-    @apply bg-background text-foreground;
-    color-scheme: dark;
-    scroll-behavior: smooth;
-    font-feature-settings:
-      'ss01' 1,
-      'ss02' 1,
-      'ss03' 1,
-      'ss04' 1,
-      'case' 1;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-  }
-</style>
