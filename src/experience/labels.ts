@@ -63,9 +63,10 @@ export function resolveLabels(
   items: LabelItem[],
   viewportWidth: number,
   previous?: ReadonlyMap<string, LabelPlacement>,
+  avoid: readonly Rect[] = [],
 ) {
   const results = new Map<string, LabelResult>();
-  const placed: Rect[] = [];
+  const placed: Rect[] = [...avoid];
   const ordered = [...items].sort((a, b) => b.priority - a.priority);
 
   for (const item of ordered) {

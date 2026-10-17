@@ -32,6 +32,8 @@ export interface UniverseElements {
   canvas: HTMLCanvasElement;
   frames: Record<FrameName, HTMLElement>;
   protect: HTMLElement;
+  overview: HTMLElement;
+  focusHalo: HTMLElement;
   worldMarkers: Map<WorldId, HTMLElement>;
   starMarkers: Map<StageId, HTMLElement>;
   onAvailabilityChange(available: boolean): void;
@@ -216,8 +218,8 @@ export async function createUniverse(
       }
     }
 
-    function readProtect(): ScreenRect | null {
-      const rect = elements.protect.getBoundingClientRect();
+    function readProtect(element: HTMLElement): ScreenRect | null {
+      const rect = element.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return null;
       return {
         left: rect.left - origin.left,
@@ -271,6 +273,7 @@ export async function createUniverse(
       const label = marker.querySelector('.marker-label');
       if (label) labelObserver.observe(label);
     });
+    labelObserver.observe(elements.overview);
     document.documentElement.style.setProperty('--label-gap', `${LABEL_GAP}px`);
 
     function labelSize(marker: HTMLElement) {
@@ -283,6 +286,30 @@ export async function createUniverse(
       return size;
     }
 
+    function showFocusHalo() {
+      const active = document.activeElement;
+      const focused = allMarkers.find(
+        (marker) =>
+          marker === active &&
+          marker.matches(':focus-visible') &&
+          !marker.hasAttribute('data-offstage'),
+      );
+      elements.focusHalo.hidden = !focused;
+      if (!focused) return;
+      elements.focusHalo.style.transform = focused.style.transform;
+      elements.focusHalo.style.setProperty(
+        '--size',
+        focused.style.getPropertyValue('--size'),
+      );
+    }
+    document.addEventListener('focusin', invalidate);
+    document.addEventListener('focusout', invalidate);
+    cleanup.push(() => {
+      document.removeEventListener('focusin', invalidate);
+      document.removeEventListener('focusout', invalidate);
+      elements.focusHalo.hidden = true;
+    });
+
     const placements = new Map<string, LabelPlacement>();
     function placeMarkers(
       entries: Array<{
@@ -294,6 +321,7 @@ export async function createUniverse(
         prefer: LabelSide;
         visible: boolean;
       }>,
+      avoid: readonly ScreenRect[],
     ) {
       const items: LabelItem[] = [];
       for (const entry of entries) {
@@ -320,7 +348,7 @@ export async function createUniverse(
           prefer: entry.prefer,
         });
       }
-      const results = resolveLabels(items, width, placements);
+      const results = resolveLabels(items, width, placements, avoid);
       for (const entry of entries) {
         const result = results.get(entry.id);
         if (!result) continue;
@@ -427,7 +455,7 @@ export async function createUniverse(
 
       worlds.forEach((world) => world.update(context));
       const focused = state.focusId ? worldById.get(state.focusId) : undefined;
-      const protect = focused ? readProtect() : null;
+      const protect = focused ? readProtect(elements.protect) : null;
       const obstacles: Obstacle[] = [sunObstacle];
       worlds.forEach((world) => {
         if (world === focused) return;
@@ -494,7 +522,15 @@ export async function createUniverse(
 
       renderer.render(scene, camera);
 
-      placeMarkers(worldEntries.filter((entry) => entry.marker));
+      const overview =
+        !focused && elements.overview.checkVisibility({ opacityProperty: true })
+          ? readProtect(elements.overview)
+          : null;
+      const editorial = overview ? [overview] : [];
+      placeMarkers(
+        worldEntries.filter((entry) => entry.marker),
+        editorial,
+      );
       placeMarkers(
         [...constellation.starPositions].flatMap(([id, position]) => {
           const marker = elements.starMarkers.get(id);
@@ -513,7 +549,9 @@ export async function createUniverse(
             },
           ];
         }),
+        editorial,
       );
+      showFocusHalo();
 
       const cpu = performance.now() - started;
       stats.mode = interactive ? 'interactive' : 'ambient';

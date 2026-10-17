@@ -59,6 +59,7 @@ export function mountExperience() {
   const aboutSection = one('#about');
   const contactSection = one('#contact');
   const workDetail = one('.work-detail');
+  const workPrompt = one('.work-prompt');
   const worldDetails = byData('world-detail', isWorldId);
   const worldMarkers = byData('world-marker', isWorldId);
   const worldStatus = one('[data-world-status]');
@@ -478,6 +479,8 @@ export function mountExperience() {
           canvas: scene,
           frames,
           protect: workDetail,
+          overview: workPrompt,
+          focusHalo: one('[data-focus-halo]'),
           worldMarkers,
           starMarkers,
           onAvailabilityChange(available) {

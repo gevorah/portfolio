@@ -18,6 +18,7 @@
     opacity: calc(var(--work) * 1.8 - 0.4);
   }
 
+  .work-prompt,
   .work-detail {
     position: relative;
   }

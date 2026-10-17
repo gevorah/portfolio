@@ -546,3 +546,164 @@ test('touch swipes over Work scroll the page instead of rotating', async ({
   expect(await orbit(page)).toEqual({ yaw: 0, pitch: 0 });
   await context.close();
 });
+
+async function focusWorldByKeyboard(page: Page, id: string) {
+  await page.getByRole('button', { name: 'Explore view' }).focus();
+  for (let step = 0; step < 12; step += 1) {
+    await page.keyboard.press('Shift+Tab');
+    if (
+      await page.evaluate(
+        (target) =>
+          (document.activeElement as HTMLElement).dataset.worldMarker ===
+          target,
+        id,
+      )
+    )
+      return;
+  }
+  throw new Error(`Keyboard focus never reached ${id}`);
+}
+
+async function focusRingCoverage(page: Page) {
+  await page.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+  const ring = await page.evaluate(() => {
+    const box = document.activeElement!.getBoundingClientRect();
+    const size = parseFloat(
+      (document.activeElement as HTMLElement).style.getPropertyValue('--size'),
+    );
+    return {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+      radius: size * 0.64 - 1,
+    };
+  });
+  const clip = {
+    x: Math.round(ring.x - ring.radius - 4),
+    y: Math.round(ring.y - ring.radius - 4),
+    width: Math.round(ring.radius * 2 + 8),
+    height: Math.round(ring.radius * 2 + 8),
+  };
+  const image = (await page.screenshot({ clip })).toString('base64');
+  return page.evaluate(
+    async ([data, radius]) => {
+      const blob = await (await fetch(`data:image/png;base64,${data}`)).blob();
+      const bitmap = await createImageBitmap(blob);
+      const context = new OffscreenCanvas(
+        bitmap.width,
+        bitmap.height,
+      ).getContext('2d')!;
+      context.drawImage(bitmap, 0, 0);
+      const center = bitmap.width / 2;
+      let lilac = 0;
+      const samples = 72;
+      for (let index = 0; index < samples; index += 1) {
+        const angle = (index / samples) * Math.PI * 2;
+        const [r, g, b] = context.getImageData(
+          Math.round(center + Math.cos(angle) * radius),
+          Math.round(center + Math.sin(angle) * radius),
+          1,
+          1,
+        ).data;
+        if (b > 200 && r > 140 && g > 110 && g < r && r < b) lilac += 1;
+      }
+      return lilac / samples;
+    },
+    [image, ring.radius] as const,
+  );
+}
+
+test('a keyboard-focused world stays identifiable without blocking the Work controls', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 500 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page);
+  await scrollTo(page, 'work');
+  await page.getByRole('button', { name: 'Explore view' }).click();
+  const start = await page.evaluate(() => scrollY);
+
+  let scene: {
+    covered: { orbit: string; x: number; y: number; by: string };
+    focus: string;
+  } | null = null;
+  for (let offset = 200; offset <= 340 && !scene; offset += 20) {
+    await page.evaluate(
+      (top) => window.scrollTo({ top, behavior: 'instant' }),
+      start + offset,
+    );
+    await page.waitForTimeout(200);
+    scene = await page.evaluate(() => {
+      const text = document
+        .querySelector('.work-prompt')!
+        .getBoundingClientRect();
+      const markers = [
+        ...document.querySelectorAll<HTMLElement>(
+          '.world-marker:not([data-offstage])',
+        ),
+      ].map((marker) => ({
+        id: marker.dataset.worldMarker!,
+        box: marker.getBoundingClientRect(),
+      }));
+      const controls = [
+        ...document.querySelectorAll<HTMLElement>(
+          '[data-orbit]:not([data-orbit="reset"])',
+        ),
+      ];
+      for (const control of controls) {
+        const button = control.getBoundingClientRect();
+        for (const marker of markers) {
+          const left = Math.max(button.left, marker.box.left);
+          const right = Math.min(button.right, marker.box.right);
+          const top = Math.max(button.top, marker.box.top);
+          const bottom = Math.min(button.bottom, marker.box.bottom);
+          if (right - left < 8 || bottom - top < 8) continue;
+          const behind = markers.find(
+            (other) =>
+              other.id !== marker.id &&
+              other.box.top < text.bottom &&
+              other.box.bottom > text.top,
+          );
+          if (!behind) continue;
+          return {
+            covered: {
+              orbit: control.dataset.orbit!,
+              x: (left + right) / 2,
+              y: (top + bottom) / 2,
+              by: marker.id,
+            },
+            focus: behind.id,
+          };
+        }
+      }
+      return null;
+    });
+  }
+  expect(scene, 'a planet covers an Explore view control').not.toBeNull();
+  const { covered, focus } = scene!;
+
+  await focusWorldByKeyboard(page, focus);
+  expect(await focusRingCoverage(page)).toBeGreaterThan(0.5);
+
+  const before = await page.evaluate(() => ({
+    ...window.__experience.orbit,
+  }));
+  await page.mouse.click(covered.x, covered.y);
+  const after = await page.evaluate(() => ({
+    focusId: window.__experience.focusId,
+    orbit: { ...window.__experience.orbit },
+    active: (document.activeElement as HTMLElement).dataset.orbit,
+  }));
+  expect(after.focusId, `${covered.by} took the click`).toBeNull();
+  expect(after.active).toBe(covered.orbit);
+  expect(after.orbit).not.toEqual(before);
+
+  await focusWorldByKeyboard(page, focus);
+  await page.keyboard.press('Enter');
+  await settled(page, 1);
+  expect(await page.evaluate(() => window.__experience.focusId)).toBe(focus);
+});

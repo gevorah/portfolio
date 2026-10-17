@@ -61,6 +61,16 @@ describe('resolveLabels', () => {
     expect(result.get('c')?.placement).toBe('hidden');
   });
 
+  it('keeps labels off the areas it is asked to avoid', () => {
+    const text = { left: 300, right: 500, top: 330, bottom: 420 };
+    const flipped = resolveLabels([item({ id: 'a' })], 1440, undefined, [text]);
+    expect(flipped.get('a')?.placement).toBe('above');
+    const covered = resolveLabels([item({ id: 'a' })], 1440, undefined, [
+      { ...text, top: 200 },
+    ]);
+    expect(covered.get('a')?.placement).toBe('hidden');
+  });
+
   it('nudges a label back inside the viewport', () => {
     const result = resolveLabels([item({ id: 'a', x: 20 })], 390);
     expect(result.get('a')?.nudge).toBe(40);

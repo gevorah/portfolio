@@ -12,6 +12,7 @@
     width: 100%;
   }
 
+  .js:not(.no-webgl) .work:not([data-focus]) .work-prompt::before,
   .work-detail::before,
   .career-content::before {
     content: '';
@@ -26,7 +27,17 @@
     pointer-events: none;
   }
 
+  .js:not(.no-webgl) .work:not([data-focus]) .work-prompt::before {
+    top: -0.5rem;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--color-void) 82%, transparent) 2.5rem
+    );
+  }
+
   @media (width >= 56.25rem) {
+    .js:not(.no-webgl) .work:not([data-focus]) .work-prompt::before,
     .work-detail::before,
     .career-content::before {
       inset: -18% -40% -18% -22%;

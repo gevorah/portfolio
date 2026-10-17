@@ -237,6 +237,128 @@ for (const viewport of [
   });
 }
 
+async function workTextExposure(page: import('@playwright/test').Page) {
+  const text = await page.evaluate(() => {
+    if (
+      Number(
+        getComputedStyle(document.querySelector('.work-content')!).opacity,
+      ) < 0.6
+    )
+      return null;
+    const header = document.querySelector('.site-header')!;
+    const top = header.getBoundingClientRect().bottom;
+    const parts = [
+      ...document.querySelectorAll(
+        '.work-prompt :is(h2, .section-lede, .explore-toggle, .explore-controls:not([hidden]) > *)',
+      ),
+    ]
+      .map((element) => element.getBoundingClientRect())
+      .map((rect) => {
+        const y = Math.max(rect.top, top);
+        return {
+          x: Math.round(rect.left),
+          y: Math.round(y),
+          width: Math.round(rect.width),
+          height: Math.round(Math.min(rect.bottom, innerHeight) - y),
+        };
+      })
+      .filter((rect) => rect.width > 0 && rect.height > 0);
+    const covers = (label: DOMRect) =>
+      parts.some(
+        (part) =>
+          label.left < part.x + part.width &&
+          label.right > part.x &&
+          label.top < part.y + part.height &&
+          label.bottom > part.y,
+      );
+    const labels = [
+      ...document.querySelectorAll<HTMLElement>(
+        '.marker:not([data-offstage]) .marker-label',
+      ),
+    ]
+      .filter((label) => Number(getComputedStyle(label).opacity) > 0.05)
+      .filter((label) => covers(label.getBoundingClientRect()))
+      .map((label) => label.textContent!.trim());
+    return { parts, labels };
+  });
+  if (!text || text.parts.length === 0) return null;
+  const mask = await page.addStyleTag({
+    content:
+      '.work-prompt, .work-prompt * { color: transparent !important; border-color: transparent !important; transition: none !important; } .site-header, .waypoints { visibility: hidden !important; }',
+  });
+  const image = (await page.screenshot()).toString('base64');
+  await mask.evaluate((style) => (style as Element).remove());
+  const lit = await page.evaluate(
+    async ([data, parts]) => {
+      const blob = await (await fetch(`data:image/png;base64,${data}`)).blob();
+      const bitmap = await createImageBitmap(blob);
+      const context = new OffscreenCanvas(
+        bitmap.width,
+        bitmap.height,
+      ).getContext('2d')!;
+      context.drawImage(bitmap, 0, 0);
+      let bright = 0;
+      let total = 0;
+      for (const part of parts) {
+        const { data: pixels } = context.getImageData(
+          part.x,
+          part.y,
+          part.width,
+          part.height,
+        );
+        for (let index = 0; index < pixels.length; index += 4) {
+          total += 1;
+          const luminance =
+            0.2126 * pixels[index] +
+            0.7152 * pixels[index + 1] +
+            0.0722 * pixels[index + 2];
+          if (luminance > 72) bright += 1;
+        }
+      }
+      return bright / total;
+    },
+    [image, text.parts] as const,
+  );
+  return { lit, labels: text.labels };
+}
+
+for (const viewport of [
+  { width: 390, height: 500 },
+  { width: 320, height: 568 },
+]) {
+  test(`the Work introduction stays readable while the system leaves at ${viewport.width}×${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await open(page);
+    await scrollTo(page, 'work');
+    await page.locator('[data-explore-toggle]').click();
+    const start = await page.evaluate(() => scrollY);
+    const step = Math.round(viewport.height / 20);
+    const offsets = Array.from({ length: 21 }, (_, index) => index * step);
+    let measured = 0;
+    for (const offset of [...offsets, ...offsets.reverse()]) {
+      await page.evaluate(
+        (top) => window.scrollTo({ top, behavior: 'instant' }),
+        start + offset,
+      );
+      await page.waitForTimeout(120);
+      const exposure = await workTextExposure(page);
+      if (!exposure) continue;
+      measured += 1;
+      expect(exposure.labels, `labels over the text at +${offset}px`).toEqual(
+        [],
+      );
+      expect(
+        exposure.lit,
+        `lit scene behind the text at +${offset}px`,
+      ).toBeLessThan(0.01);
+    }
+    expect(measured).toBeGreaterThan(20);
+  });
+}
+
 for (const { width, height, fontSize, columns } of [
   { width: 320, height: 568, fontSize: 16, columns: 2 },
   { width: 320, height: 568, fontSize: 24, columns: 1 },
