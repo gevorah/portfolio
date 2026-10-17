@@ -1,0 +1,166 @@
+@layer components {
+  .universe {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 0;
+    width: 100%;
+    height: 100lvh;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.4s ease;
+  }
+
+  .universe[data-ready] {
+    opacity: calc(1 - var(--outro) * 0.78);
+  }
+
+  .site-main {
+    position: relative;
+    z-index: 1;
+    overflow-x: clip;
+  }
+
+  .stage-slot {
+    position: relative;
+    pointer-events: none;
+  }
+
+  [data-frame] {
+    position: absolute;
+    inset: 0;
+    --fit: 1;
+  }
+
+  .markers {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 2;
+    height: 100lvh;
+    overflow: clip;
+    pointer-events: none;
+  }
+
+  .marker {
+    --size: 0px;
+    --label-alpha: 1;
+    --label-shown: 1;
+    --hit: max(calc(var(--size) * 1.12), var(--control));
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--hit);
+    height: var(--hit);
+    margin: calc(var(--hit) / -2) 0 0 calc(var(--hit) / -2);
+    border-radius: 50%;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .marker[data-offstage] {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .marker::before {
+    content: '';
+    position: absolute;
+    inset: calc((var(--hit) - var(--size) * 1.28) / 2);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    transition:
+      border-color 0.3s,
+      scale 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    scale: 0.92;
+  }
+
+  .marker:focus-visible {
+    outline: none;
+  }
+
+  .marker:hover::before {
+    border-color: color-mix(in srgb, var(--color-lilac) 70%, transparent);
+    scale: 1;
+  }
+
+  .marker:focus-visible::before {
+    border-color: var(--color-lilac);
+    border-width: 2px;
+    scale: 1;
+  }
+
+  .marker-label {
+    position: absolute;
+    top: calc(
+      50% + var(--label-offset, calc(var(--size) / 2)) + var(--label-gap)
+    );
+    left: 50%;
+    translate: calc(-50% + var(--nudge, 0px)) 0;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.25rem;
+    color: var(--color-haze);
+    opacity: calc(var(--label-alpha) * var(--label-shown));
+    text-shadow:
+      0 1px 12px var(--color-void),
+      0 0 2px var(--color-void);
+    transition:
+      color 0.3s,
+      opacity 0.3s;
+  }
+
+  .marker[data-label='above'] .marker-label {
+    top: auto;
+    bottom: calc(
+      50% + var(--label-offset, calc(var(--size) / 2)) + var(--label-gap)
+    );
+  }
+
+  .marker[data-label='hidden'] {
+    --label-shown: 0;
+  }
+
+  .marker:hover .marker-label,
+  .marker:focus-visible .marker-label {
+    color: var(--color-starlight);
+  }
+
+  .marker[data-stage='signal'] {
+    --label-alpha: calc(0.35 + var(--work) * 0.65);
+  }
+
+  .marker[data-stage='signal'] .marker-label {
+    color: color-mix(in srgb, var(--color-haze) 78%, transparent);
+    font-size: 0.75rem;
+  }
+
+  @media (width < 56.25rem) {
+    .marker[data-stage='signal'] {
+      --label-alpha: var(--work);
+    }
+  }
+
+  .work[data-focus] .world-marker {
+    --label-shown: 0;
+  }
+
+  .star-marker {
+    --size: 1.5rem;
+  }
+
+  .star-marker .marker-label {
+    font-size: 0.875rem;
+    color: color-mix(in srgb, var(--color-haze) 75%, transparent);
+  }
+
+  .star-marker[aria-pressed='true']::before {
+    border-color: var(--color-lilac);
+    scale: 1;
+  }
+
+  .star-marker[aria-pressed='true'] .marker-label,
+  .star-marker:hover .marker-label {
+    color: var(--color-starlight);
+  }
+}

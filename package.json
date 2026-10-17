@@ -22,11 +22,9 @@
   "dependencies": {
     "@fontsource-variable/instrument-sans": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0",
-    "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.8",
     "gsap": "^3.15.0",
     "sharp": "^0.35.5",
-    "tailwindcss": "^4.3.3",
     "three": "^0.186.1"
   },
   "devDependencies": {
@@ -40,7 +38,6 @@
     "globals": "^17.13.0",
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.1",
-    "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"

@@ -85,7 +85,6 @@ export function mountExperience() {
       sectionProgress(outroSection.getBoundingClientRect().top, viewport),
     );
     setScroll(timeline.zone, timeline.weights, timeline.outro);
-    root.style.setProperty('--hero', timeline.weights.hero.toFixed(3));
     root.style.setProperty('--work', timeline.weights.work.toFixed(3));
     root.style.setProperty('--career', timeline.weights.career.toFixed(3));
     root.style.setProperty('--outro', timeline.outro.toFixed(3));
@@ -338,9 +337,6 @@ export function mountExperience() {
     workSection.toggleAttribute('data-focus', selected !== null);
     worldDetails.forEach((detail, id) =>
       detail.toggleAttribute('data-active', id === selected),
-    );
-    worldMarkers.forEach((marker, id) =>
-      marker.toggleAttribute('data-current', id === selected),
     );
 
     stageDetails.forEach((detail, id) =>

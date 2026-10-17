@@ -1,0 +1,213 @@
+@layer base {
+  :root {
+    --font-sans:
+      'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    --color-void: #0e0c13;
+    --color-dusk: #19171f;
+    --color-ridge: #23202c;
+    --color-starlight: #eeedf5;
+    --color-haze: #b4b1c1;
+    --color-violet: #a583f2;
+    --color-lilac: #c0a1ff;
+    --color-tide: #7394fe;
+
+    --gutter: clamp(1.5rem, 5vw, 5.25rem);
+    --bleed: calc(var(--gutter) * -1);
+    --header: 4.5rem;
+    --screen-top: calc(var(--header) + 1.5rem);
+    --screen-bottom: 3.5rem;
+    --screen-content: calc(100svh - var(--screen-top) - var(--screen-bottom));
+    --panel-width: min(36%, 30rem);
+    --control: 2.75rem;
+    --work: 0;
+    --career: 0;
+    --outro: 0;
+    color-scheme: dark;
+  }
+
+  html {
+    background: var(--color-void);
+    color: var(--color-starlight);
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    scroll-padding-top: 0;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-width: 320px;
+    background: var(--color-void);
+    line-height: 1.6;
+  }
+
+  ::selection {
+    background: var(--color-violet);
+    color: var(--color-void);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-lilac);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  section[tabindex='-1']:focus-visible,
+  [data-world-heading]:focus-visible {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0s !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .display {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 620;
+    letter-spacing: -0.06em;
+    line-height: 0.98;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+    font-weight: 620;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+  }
+
+  .section-lede {
+    margin-top: 0.6rem;
+    max-width: 26rem;
+    color: var(--color-haze);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+
+  .prose {
+    max-width: 34rem;
+    color: var(--color-haze);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  :where(
+    .world-meta,
+    .stage-meta,
+    .stage-index .years,
+    .contact-list .channel
+  ) {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  :where(.world-meta, .stage-meta) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1.5rem;
+    color: var(--color-haze);
+  }
+
+  .screen {
+    position: relative;
+    min-height: 100svh;
+    padding: var(--screen-top) var(--gutter) var(--screen-bottom);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.875rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    background: var(--color-lilac);
+    color: var(--color-void);
+    font-size: 0.9375rem;
+    font-weight: 620;
+    letter-spacing: -0.01em;
+    transition:
+      background 0.25s,
+      translate 0.25s;
+  }
+
+  .button:hover {
+    background: #d4bdff;
+    translate: 0 -2px;
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control);
+    color: var(--color-starlight);
+    font-size: 0.9375rem;
+    text-decoration: underline;
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--color-violet) 70%,
+      transparent
+    );
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+    transition: text-decoration-color 0.2s;
+  }
+
+  .link:hover {
+    text-decoration-color: var(--color-lilac);
+  }
+
+  .round-button {
+    display: grid;
+    place-items: center;
+    width: var(--control);
+    height: var(--control);
+    border: 1px solid color-mix(in srgb, var(--color-haze) 60%, transparent);
+    border-radius: 50%;
+    transition: border-color 0.2s;
+  }
+
+  .round-button:hover {
+    border-color: var(--color-lilac);
+  }
+
+  .round-button svg,
+  .back-button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: var(--control);
+    font-size: 0.9375rem;
+    font-weight: 560;
+  }
+
+  .back-button svg {
+    transition: translate 0.25s;
+  }
+
+  .back-button:hover svg {
+    translate: -3px 0;
+  }
+}

@@ -1,0 +1,92 @@
+@layer components {
+  .outro {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(5rem, 12vw, 9rem);
+    padding: clamp(5rem, 12vw, 9rem) var(--gutter);
+    border-top: 1px solid var(--color-ridge);
+    background: color-mix(in srgb, var(--color-void) 82%, transparent);
+  }
+
+  .outro > section {
+    scroll-margin-top: var(--header);
+  }
+
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .about-portrait {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    font-size: 0.9375rem;
+    color: var(--color-haze);
+  }
+
+  .about-portrait img {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+  }
+
+  .about-body {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .about-body p:first-child {
+    color: var(--color-starlight);
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .contact-list {
+    margin-top: 2.5rem;
+    border-top: 1px solid var(--color-ridge);
+  }
+
+  .contact-list a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--color-ridge);
+    transition: padding 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .contact-list a:hover {
+    padding-left: 0.75rem;
+  }
+
+  .contact-list .channel {
+    color: var(--color-haze);
+  }
+
+  .contact-list .address {
+    font-size: clamp(1.25rem, 3.4vw, 2.25rem);
+    font-weight: 560;
+    letter-spacing: -0.04em;
+    overflow-wrap: anywhere;
+  }
+
+  .site-footer {
+    margin-top: 4rem;
+    font-size: 0.8125rem;
+    color: var(--color-haze);
+  }
+
+  @media (width >= 56.25rem) {
+    .about {
+      grid-template-columns: 5fr 6fr;
+      gap: 4rem;
+    }
+  }
+}

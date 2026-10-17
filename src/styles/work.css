@@ -1,0 +1,233 @@
+@layer components {
+  .work,
+  .career {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .work .stage-slot {
+    height: 56svh;
+    min-height: 18rem;
+    margin-inline: var(--bleed);
+  }
+
+  .work [data-frame='atlas'] {
+    --fit: 1.06;
+  }
+
+  .work [data-frame='focus'] {
+    inset: 6% 8%;
+    --fit: 0.82;
+  }
+
+  .work-content,
+  .career-content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+  }
+
+  .js .work-content {
+    opacity: calc(var(--work) * 1.8 - 0.4);
+  }
+
+  .work-detail {
+    position: relative;
+  }
+
+  .world-index {
+    display: none;
+    margin-top: 1.75rem;
+    border-top: 1px solid var(--color-ridge);
+  }
+
+  .world-index button {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    min-height: 2.875rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--color-ridge);
+    text-align: left;
+  }
+
+  .world-index .name {
+    font-size: 1.0625rem;
+    font-weight: 560;
+    letter-spacing: -0.02em;
+  }
+
+  .world-index .kind {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--color-haze);
+  }
+
+  .world-meta {
+    letter-spacing: 0.01em;
+  }
+
+  .world-meta .status {
+    color: var(--color-tide);
+  }
+
+  .world-name {
+    margin-top: 0.9rem;
+    font-size: clamp(2.75rem, 10vw, 5rem);
+    font-weight: 630;
+    letter-spacing: -0.065em;
+    line-height: 0.96;
+  }
+
+  .world-name.is-long {
+    font-size: clamp(2.25rem, 7vw, 3.75rem);
+  }
+
+  .world-tagline {
+    margin-top: 0.75rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(1.375rem, 2.2vw, 1.875rem);
+    line-height: 1.2;
+    color: var(--color-lilac);
+  }
+
+  .world-detail .prose {
+    margin-top: 1.1rem;
+  }
+
+  .world-study {
+    margin-top: 1.5rem;
+  }
+
+  .world-study .frames {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .world-study .frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--color-dusk);
+  }
+
+  .world-study img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+  }
+
+  .world-study .frame span {
+    position: absolute;
+    bottom: 0.4rem;
+    left: 0.5rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--color-void) 78%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--color-starlight);
+  }
+
+  .world-study figcaption,
+  .world-note {
+    margin-top: 0.6rem;
+    max-width: 30rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--color-haze);
+  }
+
+  .detail-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-controls .steps {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .js .work-detail,
+  .js .world-detail,
+  .js .work[data-focus] .work-prompt > :not(.section-title) {
+    display: none;
+  }
+
+  .js .work[data-focus] .work-prompt .section-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .js .work[data-focus] .work-detail,
+  .js .world-detail[data-active] {
+    display: block;
+  }
+
+  @media (width >= 56.25rem) {
+    .work {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .work .stage-slot {
+      position: sticky;
+      top: 0;
+      grid-area: 1 / 1;
+      height: 100svh;
+      min-height: 0;
+      margin: calc(var(--screen-top) * -1) var(--bleed)
+        calc(var(--screen-bottom) * -1);
+    }
+
+    .work-content {
+      display: grid;
+      grid-area: 1 / 1;
+      grid-template-columns: minmax(0, 1fr);
+      min-height: var(--screen-content);
+      pointer-events: none;
+    }
+
+    .work-prompt,
+    .work-detail {
+      grid-area: 1 / 1;
+      pointer-events: auto;
+    }
+
+    .work-prompt {
+      align-self: end;
+      justify-self: start;
+      max-width: 24rem;
+    }
+
+    .work-detail {
+      align-self: center;
+      justify-self: end;
+      width: var(--panel-width);
+    }
+
+    .work [data-frame='atlas'] {
+      inset: 10% 10%;
+      --fit: 1;
+    }
+
+    .work [data-frame='focus'] {
+      inset: 10% 50% 10% 5%;
+      --fit: 0.9;
+    }
+  }
+}
