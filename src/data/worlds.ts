@@ -53,7 +53,7 @@ const entries = [
     kind: 'Personal project',
     status: 'In development',
     description:
-      'I’m building a personal finance application focused on helping people better understand and manage their money.',
+      "I'm building a personal finance application focused on helping people better understand and manage their money.",
     stage: 'world',
   },
   {

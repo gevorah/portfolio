@@ -353,6 +353,371 @@ void main() {
 }
 `;
 
+export const tailVertex = `
+attribute vec2 aTail;
+
+uniform float uLength;
+uniform vec2 uWidth;
+uniform float uBend;
+uniform vec3 uLateral;
+
+varying vec2 vTail;
+
+void main() {
+  float u = aTail.x;
+  vec3 center = vec3(0.0, 0.0, u * uLength) + uLateral * (u * u * uLength * uBend);
+  vec3 tangent = vec3(0.0, 0.0, uLength) + uLateral * (2.0 * u * uLength * uBend);
+  vec3 worldCenter = (modelMatrix * vec4(center, 1.0)).xyz;
+  vec3 worldTangent = normalize(mat3(modelMatrix) * tangent);
+  vec3 side = normalize(cross(worldTangent, normalize(cameraPosition - worldCenter)));
+  float width = 1.35 * (uWidth.x * (0.45 + 0.55 * sqrt(u)) + uWidth.y * u * (1.0 - 0.4 * u));
+  vTail = aTail;
+  gl_Position = projectionMatrix * viewMatrix * vec4(worldCenter + side * aTail.y * width, 1.0);
+}
+`;
+
+export const tailFragment = `
+uniform float uTime;
+uniform float uOpacity;
+uniform float uSeed;
+uniform float uSkew;
+uniform float uFade;
+uniform float uDiffuse;
+uniform float uStreaks;
+uniform float uWarmth;
+uniform vec3 uHead;
+uniform vec3 uMid;
+uniform vec3 uOuter;
+uniform vec3 uWarm;
+
+varying vec2 vTail;
+
+${noise}
+
+const int STREAMS = 6;
+
+float hash(float n) {
+  return fract(sin(n) * 43758.5453);
+}
+
+void main() {
+  float u = vTail.x;
+  float v = vTail.y * 1.35;
+  float flow = uTime * 0.012;
+  float w = v - uSkew - 0.12 * snoise(vec3(u * 1.2 - flow, uSeed, 0.5)) * u;
+
+  float envelope = exp(-pow(w / (w > 0.0 ? 0.56 : 0.42), 2.0));
+  float patches = 0.5 + 0.5 * fbm(vec3(w * 4.0, u * 6.0 - flow * 2.0, uSeed + 3.0), 3);
+  float dust = envelope * mix(0.35, 1.0, patches);
+
+  float streams = 0.0;
+  for (int k = 0; k < STREAMS; k++) {
+    float id = float(k) + uSeed * 7.0;
+    float primary = k == 0 ? 1.0 : 0.0;
+    float spread = mix((hash(id * 1.7) - 0.5) * 1.5, 0.0, primary);
+    float bend = (hash(id * 3.1) - 0.5) * 0.6;
+    float offset = spread * smoothstep(0.0, 0.8, u) + bend * u * u
+      + 0.1 * sin(u * 9.0 + id * 3.7 - flow * 6.0) * u;
+    float sigma = (mix(mix(0.06, 0.14, hash(id * 5.3)), 0.16, primary) * (0.6 + 0.8 * u)
+      + 0.3 * (1.0 - smoothstep(0.0, 0.3, u)))
+      * (1.0 + 0.3 * sin(u * 6.5 + id * 5.1));
+    float start = mix(0.02 + 0.25 * hash(id * 2.3), 0.04, primary);
+    float reach = mix(0.45 + 0.5 * hash(id * 4.7), 1.0, primary);
+    float presence = smoothstep(-0.1, 0.5, snoise(vec3(u * 4.5 - flow, id, 4.0)) + 0.1 + 0.35 * primary);
+    float life = smoothstep(start, start + 0.08, u) * (1.0 - smoothstep(reach * 0.6, reach, u));
+    float strength = mix(mix(0.35, 0.9, hash(id * 7.9)), 0.4, primary);
+    streams += exp(-pow((w - offset) / sigma, 2.0)) * presence * life * strength;
+  }
+
+  float wisps = 0.5 + 0.5 * fbm(vec3(v * 3.0, u * 4.0 - flow * 2.0, uSeed + 9.0), 3);
+  float along = smoothstep(0.0, 0.1, u) * exp(-u * uFade * 1.6)
+    * mix(0.4, 1.0, smoothstep(0.05, 0.35, u))
+    * (1.0 - smoothstep(0.6, 1.0, u + (wisps - 0.5) * 0.4));
+  float rim = 1.0 - smoothstep(0.8, 1.0, abs(vTail.y));
+  streams = (1.0 - exp(-streams * 1.2)) * mix(0.35, 1.0, envelope);
+  float density = (dust * uDiffuse + streams * uStreaks) * along * rim;
+  float light = 1.0 - exp(-density * 2.0);
+
+  vec3 dustColor = mix(uMid, uOuter, smoothstep(0.1, 0.9, abs(w) * 0.8 + u * 0.5));
+  vec3 streamColor = mix(uHead, uWarm, uWarmth * smoothstep(0.05, 0.5, u));
+  float share = streams * uStreaks / max(streams * uStreaks + dust * uDiffuse, 0.0001);
+  vec3 color = mix(mix(dustColor, streamColor, share), uHead, 1.0 - smoothstep(0.0, 0.15, u));
+
+  gl_FragColor = vec4(color * light * uOpacity, 1.0);
+  #include <colorspace_fragment>
+}
+`;
+
+export const comaVertex = `
+uniform float uSize;
+uniform vec3 uAxis;
+
+varying vec2 vOffset;
+varying vec2 vTailDirection;
+
+void main() {
+  vec4 center = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+  vec2 projected = (mat3(viewMatrix) * uAxis).xy;
+  vTailDirection = projected / max(length(projected), 0.0001);
+  vOffset = position.xy;
+  center.xy += position.xy * uSize;
+  gl_Position = projectionMatrix * center;
+}
+`;
+
+export const comaFragment = `
+uniform float uOpacity;
+
+varying vec2 vOffset;
+varying vec2 vTailDirection;
+
+${noise}
+
+void main() {
+  float d = length(vOffset);
+  float along = dot(vOffset, vTailDirection);
+  float across = length(vOffset - vTailDirection * along);
+  float trail = max(along, 0.0);
+  vec2 shaped = vec2(min(along, 0.0) + trail * 0.6, across / (1.0 + trail * 0.8));
+  float r = length(shaped);
+  float grain = 0.5 + 0.5 * snoise(vec3(shaped * 6.0, 2.0));
+  float nucleus = exp(-pow(d / 0.008, 2.0));
+  float core = exp(-pow(r / 0.026, 2.0));
+  float coma = exp(-pow(r / (0.07 * mix(0.9, 1.1, grain)), 1.8));
+  float outer = exp(-pow(r / 0.13, 2.0)) * mix(0.75, 1.0, grain);
+  vec3 color = vec3(1.0, 0.97, 0.96) * nucleus * 0.3
+    + vec3(0.62, 0.6, 1.0) * core * 0.12
+    + vec3(0.3, 0.3, 0.95) * coma * 0.26
+    + vec3(0.2, 0.26, 0.88) * outer * 0.06;
+  color = 1.0 - exp(-color * 1.3);
+  color *= 1.0 - smoothstep(0.75, 1.0, d);
+  gl_FragColor = vec4(color * uOpacity, 1.0);
+  #include <colorspace_fragment>
+}
+`;
+
+export const nebulaVertex = `
+varying vec2 vPlane;
+
+void main() {
+  vPlane = position.xy;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+export const nebulaFragment = `
+uniform float uOpacity;
+uniform float uSeed;
+uniform float uScale;
+uniform vec3 uSources[3];
+uniform vec3 uIndigo;
+uniform vec3 uViolet;
+uniform vec3 uBlue;
+uniform vec3 uMagenta;
+uniform vec3 uLavender;
+uniform vec3 uPink;
+uniform vec3 uWhite;
+uniform vec3 uSoot;
+
+varying vec2 vPlane;
+
+${noise}
+
+const float GAIN = 0.93;
+const float PINK = 0.85;
+const float WHITE = 0.12;
+const float DUST = 1.1;
+const float HALO = 0.6;
+
+const vec2 BAND = vec2(0.85, -0.53);
+const mat2 LANES = mat2(0.6, 0.8, -0.8, 0.6);
+
+vec2 toBand(vec2 v) {
+  return vec2(dot(v, BAND), dot(v, vec2(-BAND.y, BAND.x)));
+}
+
+#if LAYER == 0
+const int FLOW = 1;
+#else
+const int FLOW = 2;
+#endif
+
+vec2 flow(vec2 q) {
+  vec3 s = vec3(q * 0.9, 3.7);
+  return vec2(fbm(s, FLOW), fbm(s + vec3(5.2, 1.3, 2.7), FLOW));
+}
+
+float envelope(vec2 p, vec2 w) {
+  vec2 b = toBand(p);
+  float r = length(b / vec2(1.45, 0.56)) + w.x * 0.32 + w.y * 0.2;
+  return (1.0 - smoothstep(0.12, 1.0, r)) * smoothstep(-1.3, 0.15, b.x + w.y * 0.3);
+}
+
+float outskirts(vec2 q, vec2 w) {
+  vec2 b = toBand(q - vec2(0.12, -0.05));
+  float lobes = snoise(vec3(normalize(b + 1e-4) * 1.2, 8.3));
+  vec2 reach = vec2(mix(1.25, 1.75, smoothstep(-0.5, 0.6, b.x)), mix(1.05, 1.15, smoothstep(-0.3, 0.6, b.y)));
+  float r = length(b / reach) * (1.0 - 0.3 * lobes) + w.x * 0.35 + w.y * 0.2;
+  return 1.0 - smoothstep(0.1, 1.0, r);
+}
+
+float falloff(vec2 d, float radius) {
+  return 1.0 / (1.0 + dot(d, d) / (radius * radius));
+}
+
+float shadowAt(vec2 q) {
+  vec2 lane = LANES * q;
+  return smoothstep(0.05, 0.42, fbm(vec3(lane.x * 1.2 + 3.1, lane.y * 3.6 - 1.7, 21.0), 2));
+}
+
+float primaryLight = 0.0;
+
+float light(vec2 q, vec2 w) {
+  vec2 s0 = uSources[0].xy;
+  vec2 d0 = q - s0;
+#if LAYER == 1
+  float shade = shadowAt(mix(q, s0, 0.45) + w * 0.12);
+#else
+  float shade = 0.3;
+#endif
+  float primary = (falloff(d0, 0.1) + 0.6 * exp(-length(toBand(d0) / vec2(1.0, 0.7)) * 2.2)) * exp(-2.0 * shade);
+  primaryLight = primary;
+  float secondary = 0.42 * falloff(q - uSources[1].xy, 0.2) + 0.26 * falloff(q - uSources[2].xy, 0.12);
+  vec2 l = toBand(q - vec2(-0.5, 0.22) - w * 0.15);
+  float ambient = 0.16 * exp(-length(l / vec2(0.55, 0.32)) * 1.6);
+  return primary + secondary + ambient;
+}
+
+float stars(vec2 q, out float halo) {
+  float core = 0.0;
+  halo = 0.0;
+  for (int i = 0; i < 3; i++) {
+    vec2 d = q - uSources[i].xy;
+    float size = i == 0 ? 1.0 : 0.6;
+    float d2 = dot(d, d);
+    core += size * exp(-d2 / (0.000036 * size));
+    halo += size * size * size * exp(-d2 / (0.0011 * size * size));
+  }
+  return core;
+}
+
+float filaments(vec3 p) {
+  float sum = 0.0;
+  float weight = 1.0;
+  float amp = 0.6;
+  for (int i = 0; i < 3; i++) {
+    float r = 1.0 - abs(snoise(p));
+    r *= r;
+    r *= r * weight;
+    weight = clamp(r * 2.4, 0.0, 1.0);
+    sum += r * amp;
+    p = p * 2.3 + vec3(9.3, -4.1, 2.7);
+    amp *= 0.8;
+  }
+  return min(sum * 1.6, 1.0);
+}
+
+float dustLanes(vec2 q, vec2 w) {
+  vec2 lane = LANES * (q + w * 0.25);
+  float drift = 0.5 * snoise(vec3(q * 1.3, 5.0));
+  float field = fbm(vec3(lane.x * 1.2 + 3.1 + drift * 0.6, lane.y * 3.6 - 1.7 + drift * 0.4, 21.0), 3);
+  return smoothstep(0.08, 0.42, field);
+}
+
+#if LAYER == 0
+const float REACH = 0.8;
+#else
+const float REACH = 1.0;
+#endif
+
+void main() {
+  vec2 p = vPlane;
+  vec2 q = p * uScale;
+#if LAYER == 1
+  vec2 bound = toBand(p * REACH) / vec2(1.45, 0.56);
+  if (dot(bound, bound) > 1.9 || bound.x < -1.35) {
+#else
+  vec2 bound = toBand(q - vec2(0.12, -0.05)) / vec2(2.3, 1.45);
+  if (dot(bound, bound) > 1.0) {
+#endif
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  float frame = 1.0 - smoothstep(0.78, 1.0, max(abs(p.x), abs(p.y)));
+  vec2 w = flow(q);
+#if LAYER == 0
+  float env = max(envelope(q * 0.62, w), outskirts(q, w));
+  if (env < 0.004) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  float L = light(q, w);
+  float haze = 0.5 + 0.5 * fbm(vec3(q * 1.2 + w * 0.5, uSeed), 2);
+  float wisps = filaments(vec3(toBand(q) * vec2(1.5, 2.1) + w * 0.9, uSeed + 5.0));
+  float density = env * smoothstep(0.15, 0.7, haze) * (0.3 + 0.7 * wisps);
+  vec3 color = mix(uIndigo, uBlue, haze);
+  color = mix(color, uViolet, smoothstep(0.1, 0.8, L));
+  gl_FragColor = vec4(color * density * (0.62 + 0.6 * L) * frame * uOpacity, 1.0);
+#elif LAYER == 1
+  float L = light(q, w);
+  float shape = envelope(p, w);
+  float outer = outskirts(q, w);
+  float body = 0.5 + 0.5 * fbm(vec3(q * 1.7 + w * 0.6, uSeed), 3);
+  float breaks = smoothstep(0.2, 0.75, 0.5 + 0.5 * snoise(vec3(q * 4.6 + w * 1.3, uSeed + 6.0)));
+  float fil = filaments(vec3(toBand(q) * vec2(2.3, 2.7) + w * 0.75, uSeed + 2.0)) * mix(0.45, 1.0, breaks);
+  float cells = 0.5 + 0.5 * fbm(vec3(q * 2.3 + w * 0.7, 11.0), 3);
+  float hole = 1.0 - smoothstep(0.28, 0.55, cells);
+  float shell = exp(-pow((cells - 0.52) / 0.06, 2.0));
+  float nearCore = smoothstep(0.05, 0.6, L);
+  float lane = dustLanes(q, w) * DUST * mix(0.35, 1.0, nearCore);
+  float gas = smoothstep(0.08, 0.7, body);
+  float strands = 0.4 + 0.6 * fil;
+  float env = max(shape, 0.75 * outer);
+  float before = env * gas * strands * (1.0 - hole * mix(0.3, 0.9, nearCore)) * (1.0 - 0.75 * lane);
+  float fill = smoothstep(0.14, 0.45, L) * smoothstep(0.05, 0.4, body);
+  float envFilled = max(shape, 0.95 * outer);
+  float lanes = lane * mix(0.35, 1.0, cells);
+  float pocket = 1.0 - smoothstep(0.12, 0.22, cells);
+  float carve = max(hole * mix(0.25, 0.45, nearCore) * (1.0 - 0.5 * fil), pocket * 0.7);
+  float filled = envFilled * (0.3 + 0.7 * gas) * strands * (1.0 - carve) * (1.0 - 0.75 * lanes * (1.0 - 0.75 * hole));
+  float density = mix(before, max(filled, before), fill);
+  float litDensity = before + mix(1.0, 0.35, smoothstep(0.25, 0.7, primaryLight)) * (density - before);
+  float lit = litDensity * (0.3 + 1.55 * L) + shell * env * L * 0.3 * (1.0 - lanes);
+  float t = 1.0 - exp(-lit * GAIN * 1.3);
+  float hue = smoothstep(-0.35, 0.35, fbm(vec3(q * 1.3 + w, 17.0), 2));
+  vec3 color = mix(uIndigo, uViolet, smoothstep(0.0, 0.25, t));
+  color = mix(color, mix(uBlue, uMagenta, min(hue + 0.35 * nearCore, 1.0)), smoothstep(0.12, 0.45, t) * 0.9);
+  vec3 bright = mix(mix(uLavender, uViolet, 0.4), uLavender, smoothstep(0.25, 0.7, fil));
+  bright = mix(bright, uPink, smoothstep(0.38, 0.8, hue * 0.55 + cells * 0.6) * PINK);
+  color = mix(color, bright, smoothstep(0.5, 0.82, t));
+  color = mix(color, mix(uLavender, uPink, 0.45 + 0.45 * hue), smoothstep(0.3, 1.2, L) * HALO * smoothstep(0.0, 0.5, density) * (0.6 + 0.4 * breaks));
+  color = mix(color, uWhite, smoothstep(0.82, 0.95, t) * WHITE);
+  vec3 emitted = color * t * 1.25;
+  float halo;
+  float core = stars(q, halo);
+  emitted += mix(uPink, uLavender, 0.5) * halo * 0.55 + uWhite * core * 1.6;
+  gl_FragColor = vec4(emitted * frame * uOpacity, 1.0);
+#else
+  float env = max(envelope(p, w * 1.2), outskirts(q, w * 1.2));
+  if (env < 0.004) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  float L = light(q, w);
+  float lanes = dustLanes(q, w);
+  float grain = 0.5 + 0.5 * fbm(vec3(q * 3.0 + w, uSeed), 2);
+  float clumps = smoothstep(0.55, 0.8, grain);
+  float rim = smoothstep(0.0, 0.45, env) * (1.0 - smoothstep(0.45, 0.95, env));
+  float patchy = smoothstep(0.3, 0.75, grain);
+  float near = smoothstep(0.14, 0.45, L);
+  float veil = max((lanes * mix(mix(0.35, 0.16, near), 0.72, smoothstep(0.1, 0.8, L)) * mix(mix(0.6, 0.25, near), 1.0, patchy) + clumps * 0.3) * env, rim * lanes * mix(0.4, 0.22, near)) * DUST;
+  vec3 color = mix(uSoot, uIndigo * 0.45, smoothstep(0.2, 1.0, L) * 0.6);
+  gl_FragColor = vec4(color, veil * frame * uOpacity);
+#endif
+  #include <colorspace_fragment>
+}
+`;
+
 export const threadVertex = `
 attribute float aProgress;
 attribute float aWeight;

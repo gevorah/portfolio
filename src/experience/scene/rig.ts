@@ -3,6 +3,13 @@ import * as THREE from 'three';
 import type { ExperienceState } from '../store';
 import type { WorldBody } from './bodies';
 import {
+  COMET_AXIS,
+  COMET_EXTENT,
+  COMET_POSITION,
+  COMET_TAIL,
+  COMET_VIEW,
+} from './comet';
+import {
   chooseView,
   viewCandidates,
   viewDirection,
@@ -15,6 +22,7 @@ import {
   CONSTELLATION_DISTANCE,
 } from './constellation';
 import { CONSTELLATION_EXTENT, SYSTEM_RADIUS, SYSTEM_VIEWS } from './looks';
+import { NEBULA_EXTENT, NEBULA_POSITION, NEBULA_VIEW } from './nebula';
 
 export const FOV = 36;
 
@@ -26,7 +34,8 @@ export interface Frame {
   fit: number;
 }
 
-export type FrameName = 'hero' | 'atlas' | 'focus' | 'career';
+export type FrameName =
+  'hero' | 'atlas' | 'focus' | 'career' | 'about' | 'contact';
 export type Frames = Record<FrameName, Frame>;
 
 export interface RigInput {
@@ -80,6 +89,20 @@ const ATLAS_VIEW = direction(
   SYSTEM_VIEWS.atlas.azimuth,
 );
 
+const COMET_SUBJECT = COMET_POSITION.clone().addScaledVector(
+  COMET_AXIS,
+  COMET_TAIL * 0.3,
+);
+const COMET_SCREEN_ANGLE = THREE.MathUtils.degToRad(28);
+const COMET_ROLL = (() => {
+  const forward = COMET_VIEW.clone().negate();
+  const right = new THREE.Vector3().crossVectors(forward, UP).normalize();
+  const up = new THREE.Vector3().crossVectors(right, forward);
+  return (
+    Math.atan2(COMET_AXIS.dot(up), COMET_AXIS.dot(right)) - COMET_SCREEN_ANGLE
+  );
+})();
+
 function mixPose(a: Pose, b: Pose, t: number, out: Pose) {
   out.subject.lerpVectors(a.subject, b.subject, t);
   out.view.lerpVectors(a.view, b.view, t).normalize();
@@ -97,6 +120,10 @@ export function createRig(camera: THREE.PerspectiveCamera) {
   const atlas = createPose();
   const focus = createPose();
   const career = createPose();
+  const about = createPose();
+  const contact = createPose();
+  const past = createPose();
+  const comet = createPose();
   const work = createPose();
   const system = createPose();
   const final = createPose();
@@ -225,6 +252,15 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       place(career, frames.career, 1, 1);
       career.distance = CONSTELLATION_DISTANCE;
 
+      about.subject.copy(COMET_SUBJECT);
+      about.view.copy(COMET_VIEW);
+      about.roll = COMET_ROLL;
+      place(about, frames.about, COMET_EXTENT, 0.62);
+
+      contact.subject.copy(NEBULA_POSITION);
+      contact.view.copy(NEBULA_VIEW);
+      place(contact, frames.contact, NEBULA_EXTENT, 1);
+
       if (focused && state.focus > 0) {
         mixPose(atlas, focus, state.focus, work);
         work.shiftX = THREE.MathUtils.lerp(
@@ -243,8 +279,13 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       const toWork =
         state.weights.work /
         Math.max(state.weights.work + state.weights.hero, 0.0001);
-      mixPose(hero, work, state.weights.career >= 1 ? 1 : toWork, system);
-      mixPose(system, career, state.weights.career, final);
+      const beyondCareer = state.weights.about + state.weights.contact;
+      const beyondWork = state.weights.career + beyondCareer;
+      mixPose(hero, work, beyondWork >= 0.999 ? 1 : toWork, system);
+      mixPose(system, career, beyondWork, past);
+      mixPose(past, about, beyondCareer, comet);
+      comet.distance *= 1 + 2.4 * beyondCareer * (1 - beyondCareer);
+      mixPose(comet, contact, state.weights.contact, final);
 
       pointer.lerp(input.pointer, input.damp(5));
       const parallax = state.motion.parallax

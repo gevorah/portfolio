@@ -54,7 +54,8 @@ export function mountExperience() {
   const universeSection = one('#universe');
   const workSection = one('#work');
   const careerSection = one('#experience');
-  const outroSection = one('.outro');
+  const aboutSection = one('#about');
+  const contactSection = one('#contact');
   const workDetail = one('.work-detail');
   const worldDetails = byData('world-detail', isWorldId);
   const worldMarkers = byData('world-marker', isWorldId);
@@ -72,6 +73,8 @@ export function mountExperience() {
     atlas: one('[data-frame="atlas"]'),
     focus: one('[data-frame="focus"]'),
     career: one('[data-frame="career"]'),
+    about: one('[data-frame="about"]'),
+    contact: one('[data-frame="contact"]'),
   };
 
   const scrollBehavior = (): ScrollBehavior =>
@@ -82,18 +85,22 @@ export function mountExperience() {
     const timeline = resolveTimeline(
       sectionProgress(workSection.getBoundingClientRect().top, viewport),
       sectionProgress(careerSection.getBoundingClientRect().top, viewport),
-      sectionProgress(outroSection.getBoundingClientRect().top, viewport),
+      sectionProgress(aboutSection.getBoundingClientRect().top, viewport),
+      sectionProgress(contactSection.getBoundingClientRect().top, viewport),
     );
-    setScroll(timeline.zone, timeline.weights, timeline.outro);
+    setScroll(timeline.zone, timeline.weights);
     root.style.setProperty('--work', timeline.weights.work.toFixed(3));
     root.style.setProperty('--career', timeline.weights.career.toFixed(3));
-    root.style.setProperty('--outro', timeline.outro.toFixed(3));
+    root.style.setProperty('--about', timeline.weights.about.toFixed(3));
+    root.style.setProperty('--contact', timeline.weights.contact.toFixed(3));
 
-    root.toggleAttribute('data-outro', timeline.outro > 0.5);
-    const current = timeline.outro > 0.5 ? 'outro' : timeline.zone;
+    root.toggleAttribute(
+      'data-outro',
+      timeline.weights.about + timeline.weights.contact > 0.5,
+    );
     navLinks.forEach((link) => {
-      if (link.dataset.nav === current)
-        link.setAttribute('aria-current', 'true');
+      if (link.dataset.nav === timeline.zone)
+        link.setAttribute('aria-current', 'location');
       else link.removeAttribute('aria-current');
     });
   }

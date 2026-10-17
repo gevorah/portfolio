@@ -57,11 +57,11 @@
   }
 
   .site-nav a:hover,
-  .site-nav a[aria-current='true'] {
+  .site-nav a[aria-current='location'] {
     color: var(--color-starlight);
   }
 
-  .site-nav a[aria-current='true']::after {
+  .site-nav a[aria-current='location']::after {
     content: '';
     position: absolute;
     inset: auto 0 0.4rem 0;
@@ -84,30 +84,24 @@
   .waypoints {
     position: fixed;
     top: 50%;
-    right: 0;
+    right: max(0rem, var(--gutter) - 3.25rem);
     z-index: 9;
-    display: grid;
+    display: none;
     translate: 0 -50%;
-    opacity: calc(1 - var(--outro) * 2);
-    transition: visibility 0.3s;
-  }
-
-  [data-outro] .waypoints {
-    visibility: hidden;
   }
 
   .waypoints a {
     position: relative;
     display: grid;
     place-items: center;
-    width: 1.5rem;
+    width: 2.25rem;
     height: 2.25rem;
   }
 
   .waypoints a::before {
     content: '';
-    width: 0.5rem;
-    height: 0.5rem;
+    width: 0.6rem;
+    height: 0.6rem;
     border: 1px solid color-mix(in srgb, var(--color-haze) 70%, transparent);
     rotate: 45deg;
     transition:
@@ -120,7 +114,7 @@
     border-color: var(--color-lilac);
   }
 
-  .waypoints a[aria-current='true']::before {
+  .waypoints a[aria-current='location']::before {
     border-color: var(--color-lilac);
     background: var(--color-lilac);
     scale: 1.25;
@@ -150,18 +144,9 @@
     translate: 0 0;
   }
 
-  @media (width >= 56.25rem) {
+  @media (width >= 56.25rem) and (height >= 30rem) {
     .waypoints {
-      right: clamp(0.25rem, 1.2vw, 1.25rem);
-    }
-
-    .waypoints a {
-      width: 2.25rem;
-    }
-
-    .waypoints a::before {
-      width: 0.6rem;
-      height: 0.6rem;
+      display: grid;
     }
   }
 }

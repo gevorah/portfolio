@@ -4,14 +4,18 @@ export const profile = {
   title: 'Software engineer',
   location: 'Cali, Colombia',
   summary:
-    'I build web products across the stack, with a growing focus on frontend development and interactive experiences.',
-  education: 'Software Systems Engineering, Icesi University (2024)',
-  about: [
-    "I'm a software engineer. For the past four years I've built web products, mostly with React and Java, and today I lead a technical team.",
-    "Frontend is the part of the work I enjoy most. Lately I've been exploring creative development, where engineering turns into something you can touch.",
-    "I like understanding systems from the inside. I customize my Linux setup and my development tools with the same care I'd put into an interface.",
-    'Video games taught me to appreciate interactive design: worlds that spark curiosity and explain themselves as you play.',
-  ],
+    'I build web applications and design the systems behind them, with a growing focus on frontend development and interactive experiences.',
+  about: {
+    lead: 'I enjoy understanding how things work, from the tools I use every day to the interactive worlds I explore in games.',
+    emphasis:
+      'That curiosity shapes how I think about design, development, and interaction.',
+  },
+  education: {
+    degree: 'Software Systems Engineering',
+    institution: 'Icesi University',
+    year: '2024',
+  },
+  credit: 'gevorah',
   contact: [
     {
       label: 'Email',

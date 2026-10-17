@@ -11,7 +11,7 @@
   }
 
   .universe[data-ready] {
-    opacity: calc(1 - var(--outro) * 0.78);
+    opacity: 1;
   }
 
   .site-main {

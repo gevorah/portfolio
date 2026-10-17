@@ -42,3 +42,49 @@ test('every career stage renders its role, period and technologies', async ({
     );
   }
 });
+
+test('About is its own section with education and location', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const about = page.locator('section#about');
+  await expect(about.getByRole('heading', { level: 2 })).toHaveText(
+    'Beyond the code.',
+  );
+  await expect(about.locator('.about-text')).toHaveText(
+    `${profile.about.lead} ${profile.about.emphasis}`,
+  );
+  const details = about.locator('.about-details');
+  await expect(details).toContainText(profile.education.degree);
+  await expect(details).toContainText(profile.education.institution);
+  await expect(details).toContainText(profile.education.year);
+  await expect(details).toContainText(profile.location);
+  await expect(page.locator('#experience')).not.toContainText(
+    profile.education.degree,
+  );
+});
+
+test('Contact lists every channel as a labelled row', async ({ page }) => {
+  await page.goto('/');
+  const contact = page.locator('#contact');
+  await expect(contact.getByRole('heading', { level: 2 })).toHaveText(
+    "Let's talk.",
+  );
+  const rows = contact.locator('.contact-row');
+  await expect(rows).toHaveCount(profile.contact.length);
+  for (const [index, channel] of profile.contact.entries()) {
+    const row = rows.nth(index);
+    await expect(row).toHaveAttribute('href', channel.href);
+    await expect(row).toContainText(channel.label);
+    await expect(row).toContainText(channel.value);
+    if (channel.href.startsWith('http')) {
+      await expect(row).toHaveAttribute('target', '_blank');
+      await expect(row).toHaveAttribute('rel', 'noopener noreferrer');
+      await expect(row).toContainText('(opens in a new tab)');
+    }
+  }
+  await expect(rows.first()).toHaveAttribute(
+    'href',
+    /^mailto:jhon\.ijaji\.o@gmail\.com$/,
+  );
+});

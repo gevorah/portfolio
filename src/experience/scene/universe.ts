@@ -22,8 +22,10 @@ import {
   type FrameContext,
   type SharedUniforms,
 } from './bodies';
+import { createComet } from './comet';
 import type { Obstacle, ScreenRect } from './composition';
 import { createConstellation } from './constellation';
+import { createNebula } from './nebula';
 import { createRig, FOV, type FrameName, type Frames } from './rig';
 
 export interface UniverseElements {
@@ -155,6 +157,14 @@ export async function createUniverse(elements: UniverseElements) {
     scene.add(starfield);
     const constellation = createConstellation(shared);
     scene.add(constellation.group);
+    const comet = createComet(shared);
+    scene.add(comet.group);
+    const nebula = createNebula(shared);
+    scene.add(nebula.group);
+    const deferred = [comet.group, nebula.group];
+    deferred.forEach((group) => (group.visible = true));
+    await renderer.compileAsync(scene, camera);
+    deferred.forEach((group) => (group.visible = false));
 
     let width = 0;
     let height = 0;
@@ -380,7 +390,7 @@ export async function createUniverse(elements: UniverseElements) {
     function frame(now: number) {
       frameId = 0;
       const interactive = now < activeUntil;
-      const ambient = state.motion.ambient && state.outro < 0.98;
+      const ambient = state.motion.ambient && state.weights.contact < 0.98;
       if (!interactive && !ambient) {
         stats.mode = 'idle';
         wasInteractive = false;
@@ -436,7 +446,11 @@ export async function createUniverse(elements: UniverseElements) {
       });
       starfield.position.copy(camera.position);
 
-      const systemVisibility = 1 - state.weights.career;
+      const { career, about, contact } = state.weights;
+      const systemVisibility = Math.max(0, 1 - career - about - contact);
+      const systemInScene = contact < 0.35;
+      sun.group.visible = systemInScene;
+      worlds.forEach((world) => (world.group.visible = systemInScene));
       const veiling = state.recede * engaged;
       const sunProjection = project(
         sun.group.position,
@@ -444,7 +458,12 @@ export async function createUniverse(elements: UniverseElements) {
       );
       sun.update(context, intrudes(sunProjection, protect) ? veiling : 0);
       orbits.update(context, systemVisibility);
-      constellation.update(context.damp, state.weights.career, state.stageId);
+      constellation.update(context.damp, career, state.stageId);
+      comet.update(
+        THREE.MathUtils.smoothstep(about + contact, 0, 0.55) *
+          (1 - THREE.MathUtils.smoothstep(contact, 0.5, 1)),
+      );
+      nebula.update(THREE.MathUtils.smoothstep(contact, 0.05, 0.65));
 
       const worldsOnStage = systemVisibility > 0.45;
       intruders.length = 0;
@@ -485,7 +504,7 @@ export async function createUniverse(elements: UniverseElements) {
               prefer: (marker.dataset.prefer === 'below'
                 ? 'below'
                 : 'above') as LabelSide,
-              visible: state.weights.career > 0.55,
+              visible: career > 0.55,
             },
           ];
         }),

@@ -24,7 +24,8 @@
     --control: 2.75rem;
     --work: 0;
     --career: 0;
-    --outro: 0;
+    --about: 0;
+    --contact: 0;
     color-scheme: dark;
   }
 
@@ -108,12 +109,7 @@
     line-height: 1.65;
   }
 
-  :where(
-    .world-meta,
-    .stage-meta,
-    .stage-index .years,
-    .contact-list .channel
-  ) {
+  :where(.world-meta, .stage-meta, .stage-index .years) {
     font-family: var(--font-mono);
     font-size: 0.75rem;
   }

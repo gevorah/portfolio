@@ -9,7 +9,6 @@ import type { Zone, ZoneWeights } from './timeline';
 export interface ExperienceState {
   zone: Zone;
   weights: ZoneWeights;
-  outro: number;
   focusId: WorldId | null;
   focused: boolean;
   focus: number;
@@ -26,8 +25,7 @@ const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 export const state: ExperienceState = {
   zone: 'hero',
-  weights: { hero: 1, work: 0, career: 0 },
-  outro: 0,
+  weights: { hero: 1, work: 0, career: 0, about: 0, contact: 0 },
   focusId: null,
   focused: false,
   focus: 0,
@@ -167,9 +165,8 @@ export function selectStage(id: StageId) {
   notify();
 }
 
-export function setScroll(zone: Zone, weights: ZoneWeights, outro: number) {
+export function setScroll(zone: Zone, weights: ZoneWeights) {
   state.weights = weights;
-  state.outro = outro;
   if (zone !== state.zone) {
     state.zone = zone;
     notify();

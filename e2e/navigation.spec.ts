@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import {
   dispatchClick,
@@ -146,7 +146,7 @@ test('section waypoints reflect and change the current section', async ({
   const waypoints = page.getByRole('navigation', { name: 'Jump to section' });
   await expect(
     waypoints.getByRole('link', { name: 'Universe' }),
-  ).toHaveAttribute('aria-current', 'true');
+  ).toHaveAttribute('aria-current', 'location');
   await waypoints.getByRole('link', { name: 'Experience' }).focus();
   await page.keyboard.press('Enter');
   await expect
@@ -154,10 +154,10 @@ test('section waypoints reflect and change the current section', async ({
     .toBe(0);
   await expect(
     waypoints.getByRole('link', { name: 'Experience' }),
-  ).toHaveAttribute('aria-current', 'true');
+  ).toHaveAttribute('aria-current', 'location');
   await expect(
     waypoints.getByRole('link', { name: 'Universe' }),
-  ).not.toHaveAttribute('aria-current', 'true');
+  ).not.toHaveAttribute('aria-current', 'location');
   await expect(page.locator('#experience')).toBeFocused();
 });
 
@@ -213,5 +213,114 @@ for (const viewport of [
 
     await page.goto('/#contact');
     expect(await settledTitleTop()).toBeGreaterThanOrEqual(headerBottom - 1);
+  });
+}
+
+test('the About fragment lands on its section below the header', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 500 });
+  await page.goto('/#about');
+  await page.waitForTimeout(600);
+  const [headerBottom, noteTop] = await page.evaluate(() => [
+    document.querySelector('.site-header')!.getBoundingClientRect().bottom,
+    document.querySelector('#about-title')!.getBoundingClientRect().top,
+  ]);
+  expect(noteTop).toBeGreaterThanOrEqual(headerBottom - 1);
+  expect(noteTop).toBeLessThan(500);
+});
+
+const SECTIONS = [
+  ['universe', 'Universe'],
+  ['work', 'Work'],
+  ['experience', 'Experience'],
+  ['about', 'About'],
+  ['contact', 'Contact'],
+] as const;
+
+const currentLocations = (page: Page) =>
+  page.evaluate(() =>
+    ['.waypoints', '.site-nav'].map((selector) =>
+      document
+        .querySelector(`${selector} [aria-current="location"]`)
+        ?.textContent?.trim(),
+    ),
+  );
+
+test('the five waypoints follow scrolling in both directions and match the header', async ({
+  page,
+}) => {
+  await open(page);
+  const waypoints = page.getByRole('navigation', { name: 'Jump to section' });
+  await expect(waypoints.getByRole('link')).toHaveCount(SECTIONS.length);
+  for (const [id, label] of [...SECTIONS, ...[...SECTIONS].reverse()]) {
+    await scrollTo(page, id);
+    await expect.poll(() => currentLocations(page)).toEqual([label, label]);
+  }
+});
+
+test('waypoints follow fragments, history and rapid jumps', async ({
+  page,
+}) => {
+  await page.goto('/#about');
+  await page.waitForSelector('#scene[data-ready]');
+  await expect.poll(() => currentLocations(page)).toEqual(['About', 'About']);
+  await page.goto('/#contact');
+  await expect
+    .poll(() => currentLocations(page), { timeout: 15_000 })
+    .toEqual(['Contact', 'Contact']);
+  await page.goBack();
+  await expect
+    .poll(() => currentLocations(page), { timeout: 15_000 })
+    .toEqual(['About', 'About']);
+  await expect
+    .poll(() => sectionTop(page, 'about'), { timeout: 15_000 })
+    .toBe(0);
+  await page.goForward();
+  await expect
+    .poll(() => currentLocations(page), { timeout: 15_000 })
+    .toEqual(['Contact', 'Contact']);
+
+  const waypoints = page.getByRole('navigation', { name: 'Jump to section' });
+  await waypoints.getByRole('link', { name: 'Work' }).click();
+  await expect
+    .poll(() => sectionTop(page, 'work'), { timeout: 15_000 })
+    .toBe(0);
+  await expect.poll(() => currentLocations(page)).toEqual(['Work', 'Work']);
+  await expect(page.locator('#work')).toBeFocused();
+
+  for (const name of ['Universe', 'Contact', 'Work', 'About']) {
+    await waypoints.getByRole('link', { name }).dispatchEvent('click');
+    await page.waitForTimeout(80);
+  }
+  await expect
+    .poll(() => sectionTop(page, 'about'), { timeout: 15_000 })
+    .toBe(0);
+  await expect.poll(() => currentLocations(page)).toEqual(['About', 'About']);
+});
+
+for (const viewport of [
+  { width: 768, height: 1024 },
+  { width: 390, height: 844 },
+  { width: 1440, height: 420 },
+]) {
+  test(`waypoints leave no controls behind at ${viewport.width}×${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await open(page);
+    const links = page
+      .getByRole('navigation', { name: 'Jump to section', includeHidden: true })
+      .getByRole('link', { includeHidden: true });
+    await expect(links).toHaveCount(SECTIONS.length);
+    for (const link of await links.all()) await expect(link).toBeHidden();
+    const reachable = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('.waypoints a')];
+      return links.some((link) => {
+        (link as HTMLElement).focus();
+        return document.activeElement === link;
+      });
+    });
+    expect(reachable).toBe(false);
   });
 }
