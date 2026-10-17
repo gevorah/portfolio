@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import {
+  LABEL_GAP,
   resolveLabels,
   type LabelItem,
   type LabelPlacement,
@@ -150,7 +151,10 @@ export async function createUniverse(elements: UniverseElements) {
     let width = 0;
     let height = 0;
     const fits = new Map<HTMLElement, number>();
-    const labelWidths = new Map<HTMLElement, number>();
+    const labelSizes = new Map<
+      Element,
+      { halfWidth: number; height: number }
+    >();
 
     function resize() {
       width = canvas.clientWidth;
@@ -162,7 +166,6 @@ export async function createUniverse(elements: UniverseElements) {
       shared.uPixelRatio.value = pixelRatio;
       shared.uFocalPx.value = rig.focalPx;
       fits.clear();
-      labelWidths.clear();
       invalidate();
     }
 
@@ -232,13 +235,29 @@ export async function createUniverse(elements: UniverseElements) {
       return { x, y, radius: size, onScreen };
     }
 
-    function labelHalfWidth(marker: HTMLElement) {
-      let half = labelWidths.get(marker);
-      if (half === undefined) {
-        half = (marker.firstElementChild as HTMLElement).offsetWidth / 2;
-        if (half > 0) labelWidths.set(marker, half);
+    const labelObserver = new ResizeObserver((entries) => {
+      entries.forEach((entry) => labelSizes.delete(entry.target));
+      invalidate();
+    });
+    cleanup.push(() => labelObserver.disconnect());
+    const allMarkers = [
+      ...elements.worldMarkers.values(),
+      ...elements.starMarkers.values(),
+    ];
+    allMarkers.forEach((marker) => {
+      const label = marker.querySelector('.marker-label');
+      if (label) labelObserver.observe(label);
+    });
+    document.documentElement.style.setProperty('--label-gap', `${LABEL_GAP}px`);
+
+    function labelSize(marker: HTMLElement) {
+      const label = marker.querySelector<HTMLElement>('.marker-label')!;
+      let size = labelSizes.get(label);
+      if (!size) {
+        size = { halfWidth: label.offsetWidth / 2, height: label.offsetHeight };
+        if (size.height > 0) labelSizes.set(label, size);
       }
-      return half;
+      return size;
     }
 
     const placements = new Map<string, LabelPlacement>();
@@ -273,8 +292,7 @@ export async function createUniverse(elements: UniverseElements) {
           y: projection.y,
           bodyRadius: projection.radius,
           labelRadius: entry.labelRadius,
-          halfWidth: labelHalfWidth(marker),
-          height: 20,
+          ...labelSize(marker),
           priority: entry.priority,
           prefer: entry.prefer,
         });
@@ -539,6 +557,12 @@ export async function createUniverse(elements: UniverseElements) {
           worlds.map((world) => [world.id, world.veil]),
         ),
         labels: Object.fromEntries(placements),
+        labelSizes: Object.fromEntries(
+          allMarkers.map((marker) => [
+            marker.dataset.worldMarker ?? `star:${marker.dataset.starMarker}`,
+            labelSize(marker),
+          ]),
+        ),
       }),
     };
   } catch (error) {

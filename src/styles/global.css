@@ -20,7 +20,13 @@
 @layer base {
   :root {
     --gutter: clamp(1.5rem, 5vw, 5.25rem);
+    --bleed: calc(var(--gutter) * -1);
     --header: 4.5rem;
+    --screen-top: calc(var(--header) + 1.5rem);
+    --screen-bottom: 3.5rem;
+    --screen-content: calc(100svh - var(--screen-top) - var(--screen-bottom));
+    --panel-width: min(36%, 30rem);
+    --control: 2.75rem;
     --hero: 1;
     --work: 0;
     --career: 0;
@@ -128,7 +134,9 @@ html:not(.js) .stage-slot,
 
 .marker {
   --size: 0px;
-  --hit: max(calc(var(--size) * 1.12), 2.75rem);
+  --label-alpha: 1;
+  --label-shown: 1;
+  --hit: max(calc(var(--size) * 1.12), var(--control));
   position: absolute;
   top: 0;
   left: 0;
@@ -174,7 +182,9 @@ html:not(.js) .stage-slot,
 
 .marker-label {
   position: absolute;
-  top: calc(50% + var(--label-offset, calc(var(--size) / 2)) + 10px);
+  top: calc(
+    50% + var(--label-offset, calc(var(--size) / 2)) + var(--label-gap)
+  );
   left: 50%;
   translate: calc(-50% + var(--nudge, 0px)) 0;
   white-space: nowrap;
@@ -183,6 +193,7 @@ html:not(.js) .stage-slot,
   letter-spacing: 0.01em;
   line-height: 1.25rem;
   color: var(--color-haze);
+  opacity: calc(var(--label-alpha) * var(--label-shown));
   text-shadow:
     0 1px 12px var(--color-void),
     0 0 2px var(--color-void);
@@ -193,11 +204,13 @@ html:not(.js) .stage-slot,
 
 .marker[data-label='above'] .marker-label {
   top: auto;
-  bottom: calc(50% + var(--label-offset, calc(var(--size) / 2)) + 10px);
+  bottom: calc(
+    50% + var(--label-offset, calc(var(--size) / 2)) + var(--label-gap)
+  );
 }
 
-.marker[data-label='hidden'] .marker-label {
-  opacity: 0;
+.marker[data-label='hidden'] {
+  --label-shown: 0;
 }
 
 .marker:hover .marker-label,
@@ -205,20 +218,23 @@ html:not(.js) .stage-slot,
   color: var(--color-starlight);
 }
 
+.marker[data-stage='signal'] {
+  --label-alpha: calc(0.35 + var(--work) * 0.65);
+}
+
 .marker[data-stage='signal'] .marker-label {
   color: color-mix(in srgb, var(--color-haze) 78%, transparent);
   font-size: 0.75rem;
-  opacity: calc(0.35 + var(--work) * 0.65);
 }
 
 @media (width < 56.25rem) {
-  .marker[data-stage='signal'] .marker-label {
-    opacity: var(--work);
+  .marker[data-stage='signal'] {
+    --label-alpha: var(--work);
   }
 }
 
-.work[data-focus] .world-marker .marker-label {
-  opacity: 0;
+.work[data-focus] .world-marker {
+  --label-shown: 0;
 }
 
 .star-marker {
@@ -415,10 +431,23 @@ html:not(.js) .stage-slot,
   line-height: 1.65;
 }
 
+:where(.world-meta, .stage-meta, .stage-index .years, .contact-list .channel) {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+:where(.world-meta, .stage-meta) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  color: var(--color-haze);
+}
+
 .screen {
   position: relative;
   min-height: 100svh;
-  padding: calc(var(--header) + 1.5rem) var(--gutter) 3.5rem;
+  padding: var(--screen-top) var(--gutter) var(--screen-bottom);
 }
 
 .hero {
@@ -490,7 +519,7 @@ html:not(.js) .stage-slot,
 .link {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: var(--control);
   color: var(--color-starlight);
   font-size: 0.9375rem;
   text-decoration: underline;
@@ -511,7 +540,7 @@ html:not(.js) .stage-slot,
 .hero .stage-slot {
   flex: 1 1 16rem;
   min-height: 16rem;
-  margin: 1rem calc(var(--gutter) * -1) -1.5rem;
+  margin: 1rem var(--bleed) -1.5rem;
 }
 
 .hero [data-frame] {
@@ -578,13 +607,13 @@ html:not(.js) .stage-slot,
 .work .stage-slot {
   height: 56svh;
   min-height: 18rem;
-  margin-inline: calc(var(--gutter) * -1);
+  margin-inline: var(--bleed);
 }
 
 .career .stage-slot {
   height: 40svh;
   min-height: 16rem;
-  margin-inline: calc(var(--gutter) * -1);
+  margin-inline: var(--bleed);
 }
 
 .work [data-frame='atlas'] {
@@ -619,7 +648,7 @@ html:not(.js) .stage-slot,
 .career-content::before {
   content: '';
   position: absolute;
-  inset: -2.5rem calc(var(--gutter) * -1) -3.5rem;
+  inset: -2.5rem var(--bleed) calc(var(--screen-bottom) * -1);
   z-index: -1;
   background: linear-gradient(
     180deg,
@@ -669,14 +698,7 @@ html:not(.js) .world-index,
 }
 
 .world-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.25rem 1.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
   letter-spacing: 0.01em;
-  color: var(--color-haze);
 }
 
 .world-meta .status {
@@ -769,8 +791,8 @@ html:not(.js) .world-index,
 .round-button {
   display: grid;
   place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: var(--control);
+  height: var(--control);
   border: 1px solid color-mix(in srgb, var(--color-haze) 60%, transparent);
   border-radius: 50%;
   transition: border-color 0.2s;
@@ -790,7 +812,7 @@ html:not(.js) .world-index,
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  min-height: 2.75rem;
+  min-height: var(--control);
   font-size: 0.9375rem;
   font-weight: 560;
 }
@@ -851,7 +873,7 @@ html:not(.js) .work-detail {
   justify-content: space-between;
   gap: 1rem;
   width: 100%;
-  min-height: 2.75rem;
+  min-height: var(--control);
   padding: 0.55rem 0;
   border-bottom: 1px solid var(--color-ridge);
   color: var(--color-haze);
@@ -869,12 +891,6 @@ html:not(.js) .work-detail {
   letter-spacing: -0.015em;
 }
 
-.stage-index .years,
-.stage-meta {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-}
-
 .stage-index .years {
   flex: none;
 }
@@ -887,14 +903,6 @@ html:not(.js) .work-detail {
 
 .stage-detail {
   display: grid;
-}
-
-.stage-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.25rem 1.5rem;
-  color: var(--color-haze);
 }
 
 .stage-entry h3 {
@@ -973,14 +981,15 @@ html:not(.js) .stage-entry + .stage-entry {
     grid-area: 1 / 1;
     height: 100svh;
     min-height: 0;
-    margin: calc((var(--header) + 1.5rem) * -1) calc(var(--gutter) * -1) -3.5rem;
+    margin: calc(var(--screen-top) * -1) var(--bleed)
+      calc(var(--screen-bottom) * -1);
   }
 
   .work-content {
     display: grid;
     grid-area: 1 / 1;
     grid-template-columns: minmax(0, 1fr);
-    min-height: calc(100svh - var(--header) - 5rem);
+    min-height: var(--screen-content);
     pointer-events: none;
   }
 
@@ -999,7 +1008,7 @@ html:not(.js) .stage-entry + .stage-entry {
   .work-detail {
     align-self: center;
     justify-self: end;
-    width: min(36%, 30rem);
+    width: var(--panel-width);
   }
 
   .work [data-frame='atlas'] {
@@ -1025,8 +1034,8 @@ html:not(.js) .stage-entry + .stage-entry {
     width: 62%;
     height: 100svh;
     min-height: 0;
-    margin: calc((var(--header) + 1.5rem) * -1) 0 -3.5rem
-      calc(var(--gutter) * -1);
+    margin: calc(var(--screen-top) * -1) 0 calc(var(--screen-bottom) * -1)
+      var(--bleed);
   }
 
   .career [data-frame] {
@@ -1035,7 +1044,7 @@ html:not(.js) .stage-entry + .stage-entry {
 
   .career-content {
     align-self: center;
-    width: min(36%, 30rem);
+    width: var(--panel-width);
   }
 
   .work-detail::before,
@@ -1108,6 +1117,10 @@ html:not(.js) .stage-entry + .stage-entry {
   background: color-mix(in srgb, var(--color-void) 82%, transparent);
 }
 
+.outro > section {
+  scroll-margin-top: var(--header);
+}
+
 .about {
   display: grid;
   gap: 2.5rem;
@@ -1160,8 +1173,6 @@ html:not(.js) .stage-entry + .stage-entry {
 }
 
 .contact-list .channel {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
   color: var(--color-haze);
 }
 

@@ -173,3 +173,45 @@ test('going back to Universe closes the open world', async ({ page }) => {
   expect(await page.evaluate(() => window.__experience.focused)).toBe(false);
   await expect(page).toHaveURL(/^(?!.*world=)/);
 });
+
+for (const viewport of [
+  { width: 1440, height: 500 },
+  { width: 390, height: 500 },
+]) {
+  test(`Contact lands below the header at ${viewport.width}×${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await open(page);
+    const headerBottom = await page
+      .locator('.site-header')
+      .evaluate((header) => header.getBoundingClientRect().bottom);
+    const titleTop = () =>
+      page
+        .locator('#contact-title')
+        .evaluate((title) => title.getBoundingClientRect().top);
+    const settledTitleTop = async () => {
+      await expect
+        .poll(
+          async () => {
+            const before = await page.evaluate(() => scrollY);
+            await page.waitForTimeout(200);
+            return (await page.evaluate(() => scrollY)) === before;
+          },
+          { timeout: 15_000 },
+        )
+        .toBe(true);
+      return titleTop();
+    };
+
+    const link = page.locator('.site-nav a[href="#contact"]');
+    if (await link.isVisible()) {
+      await link.click();
+      expect(await settledTitleTop()).toBeGreaterThanOrEqual(headerBottom - 1);
+      await expect(page.locator('#contact')).toBeFocused();
+    }
+
+    await page.goto('/#contact');
+    expect(await settledTitleTop()).toBeGreaterThanOrEqual(headerBottom - 1);
+  });
+}

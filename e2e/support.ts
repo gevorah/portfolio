@@ -17,6 +17,7 @@ declare global {
         intruders: string[];
         veils: Record<string, number>;
         labels: Record<string, string>;
+        labelSizes: Record<string, { halfWidth: number; height: number }>;
       };
     };
   }
