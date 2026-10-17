@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 declare global {
   interface Window {
@@ -44,11 +44,18 @@ export async function scrollTo(page: Page, id: string) {
   await page.waitForTimeout(250);
 }
 
-export const activate = (page: Page, selector: string) =>
+export const dispatchClick = (page: Page, selector: string) =>
   page.locator(selector).evaluate((element: HTMLElement) => element.click());
 
+export async function pointerClick(page: Page, selector: string) {
+  const target = page.locator(selector);
+  await expect(target).toBeVisible();
+  const box = (await target.boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+}
+
 export const selectWorld = (page: Page, id: string) =>
-  activate(page, `[data-world-marker="${id}"]`);
+  pointerClick(page, `[data-world-marker="${id}"]`);
 
 export const settled = (page: Page, target: 0 | 1) =>
   page.waitForFunction((value) => {

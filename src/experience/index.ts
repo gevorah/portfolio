@@ -1,7 +1,9 @@
+import { stageIds } from '@/data/career';
 import { worldIds } from '@/data/worlds';
 
 import { historyMode, urlForWorld, WORLD_PARAM, worldFromUrl } from './history';
 import {
+  adjacentStage,
   adjacentWorld,
   focusWorld,
   invalidate,
@@ -29,14 +31,16 @@ const byData = (attribute: string) =>
     ]),
   );
 
+const universeSection = one('#universe');
 const workSection = one('#work');
 const careerSection = one('#experience');
-const outroSection = one('#about');
-const workContent = one('.work-content');
+const outroSection = one('.outro');
+const workDetail = one('.work-detail');
 const worldDetails = byData('world-detail');
 const worldMarkers = byData('world-marker');
 const worldStatus = one('[data-world-status]');
 const stepButtons = all('[data-step]');
+const stageStatus = one('[data-stage-status]');
 const stageDetails = byData('stage-detail');
 const stageButtons = byData('stage-select');
 const starMarkers = byData('star-marker');
@@ -58,6 +62,7 @@ function readScroll() {
   root.style.setProperty('--career', timeline.weights.career.toFixed(3));
   root.style.setProperty('--outro', timeline.outro.toFixed(3));
 
+  root.toggleAttribute('data-outro', timeline.outro > 0.5);
   const current = timeline.outro > 0.5 ? 'outro' : timeline.zone;
   navLinks.forEach((link) => {
     if (link.dataset.nav === current) link.setAttribute('aria-current', 'true');
@@ -229,13 +234,17 @@ document.addEventListener('click', (event) => {
   const target = link && document.getElementById(link.hash.slice(1));
   if (!target) return;
   event.preventDefault();
-  if (target === workSection) hideWorld({ focus: false });
+  if (target === workSection || target === universeSection)
+    hideWorld({ focus: false });
   target.scrollIntoView({ behavior: scrollBehavior() });
   target.focus({ preventScroll: true });
 });
 
 function openStage(id: string) {
   selectStage(id);
+  const heading = stageDetails.get(id)?.querySelector('h3');
+  const role = stageDetails.get(id)?.querySelector('[data-role]');
+  stageStatus.textContent = `${heading?.textContent?.trim()}, ${role?.textContent?.trim()}. Stage ${stageIds.indexOf(id) + 1} of ${stageIds.length}.`;
   if (state.zone !== 'career')
     careerSection.scrollIntoView({ behavior: scrollBehavior() });
 }
@@ -245,6 +254,20 @@ stageButtons.forEach((button, id) =>
 starMarkers.forEach((marker, id) =>
   marker.addEventListener('click', () => openStage(id)),
 );
+all('[data-stage-step]').forEach((button) =>
+  button.addEventListener('click', () =>
+    openStage(adjacentStage(button.dataset.stageStep === '1' ? 1 : -1)),
+  ),
+);
+
+document.addEventListener('keydown', (event) => {
+  if (state.zone !== 'career') return;
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  const target = event.target as HTMLElement;
+  if (target !== document.body && !careerSection.contains(target)) return;
+  if (event.key === 'ArrowRight') openStage(adjacentStage(1));
+  if (event.key === 'ArrowLeft') openStage(adjacentStage(-1));
+});
 
 let renderedWorld: string | null = null;
 
@@ -312,7 +335,7 @@ async function startUniverse() {
         focus: one('[data-frame="focus"]'),
         career: one('[data-frame="career"]'),
       },
-      protect: workContent,
+      protect: workDetail,
       worldMarkers,
       starMarkers,
     });
@@ -327,7 +350,7 @@ async function startUniverse() {
     import.meta.hot?.dispose(() => universe.dispose());
   } catch (error) {
     root.classList.add('no-webgl');
-    console.warn('Small Worlds: the 3D scene could not start.', error);
+    console.warn('Universe: the 3D scene could not start.', error);
   }
 }
 startUniverse();

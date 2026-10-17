@@ -1,5 +1,15 @@
 ---
-import { worlds } from '@/data/worlds';
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+
+import highTide from '@/assets/umbral/high-tide.jpg';
+import lowTide from '@/assets/umbral/low-tide.jpg';
+import { worlds, type StudyImage } from '@/data/worlds';
+
+const studyImages: Record<StudyImage, ImageMetadata> = {
+  'high-tide': highTide,
+  'low-tide': lowTide,
+};
 ---
 
 <section
@@ -8,15 +18,12 @@ import { worlds } from '@/data/worlds';
   aria-labelledby="work-title"
   tabindex="-1"
 >
-  <h2 class="sr-only" id="work-title">
-    Trabajo
-  </h2>
   <div class="markers">
     {worlds.map((world) => (
       <button
         type="button"
         class="marker world-marker"
-        aria-label={`Explorar ${world.name}`}
+        aria-label={`Explore ${world.name}`}
         data-world-marker={world.id}
         data-stage={world.stage}
         data-offstage
@@ -35,14 +42,10 @@ import { worlds } from '@/data/worlds';
 
   <div class="work-content">
     <div class="work-prompt">
-      <p class="display">
-        Elige un mundo.
-        <span class="voice">Acércate.</span>
-      </p>
-      <p class="prose">
-        Cada planeta reúne una parte de mi trabajo. Selecciona uno para conocer
-        su contexto y mi contribución, sin salir del sistema.
-      </p>
+      <h2 class="section-title" id="work-title">
+        Explore my work.
+      </h2>
+      <p class="section-lede">Select a world to learn more.</p>
       <ul class="world-index">
         {worlds.map((world) => (
           <li>
@@ -69,14 +72,14 @@ import { worlds } from '@/data/worlds';
           >
             <path d="M7 3 2 8l5 5M2 8h12"></path>
           </svg>
-          Volver al sistema
+          Back to the system
         </button>
         <div class="steps">
           <button
             type="button"
             class="round-button"
             data-step="-1"
-            aria-label="Mundo anterior"
+            aria-label="Previous world"
           >
             <svg
               viewBox="0 0 16 16"
@@ -92,7 +95,7 @@ import { worlds } from '@/data/worlds';
             type="button"
             class="round-button"
             data-step="1"
-            aria-label="Mundo siguiente"
+            aria-label="Next world"
           >
             <svg
               viewBox="0 0 16 16"
@@ -117,10 +120,10 @@ import { worlds } from '@/data/worlds';
             <span>
               {[world.kind, world.context].filter(Boolean).join(', ')}
             </span>
-            <span class="status">{world.status}</span>
+            {world.status && <span class="status">{world.status}</span>}
           </p>
           <h3
-            class:list={['display', { 'is-long': world.name.length > 12 }]}
+            class:list={['world-name', { 'is-long': world.name.length > 12 }]}
             id={`world-${world.id}-title`}
             data-world-heading
             tabindex="-1"
@@ -134,42 +137,30 @@ import { worlds } from '@/data/worlds';
           <p class="prose" style="--i:3">
             {world.description}
           </p>
-          {(world.role || world.technologies.length > 0) && (
-            <dl class="facts" style="--i:4">
-              {world.role && (
-                <>
-                  <dt>Mi papel</dt>
-                  <dd>{world.role}</dd>
-                </>
-              )}
-              {world.technologies.length > 0 && (
-                <>
-                  <dt>Tecnologías</dt>
-                  <dd>{world.technologies.join(', ')}</dd>
-                </>
-              )}
-            </dl>
+          {world.study && (
+            <figure class="world-study" style="--i:4">
+              <div class="frames">
+                {world.study.frames.map((frame) => (
+                  <div class="frame">
+                    <Image
+                      src={studyImages[frame.image]}
+                      alt={frame.alt}
+                      widths={[320, 480, 720]}
+                      sizes="(min-width: 56.25rem) 15rem, 45vw"
+                      loading="lazy"
+                    />
+                    <span>{frame.label}</span>
+                  </div>
+                ))}
+              </div>
+              <figcaption>{world.study.caption}</figcaption>
+            </figure>
           )}
-          {world.actions.length > 0 && (
-            <ul class="world-actions" style="--i:5">
-              {world.actions.map((action) => (
-                <li>
-                  {action.href ? (
-                    <a class="action" href={action.href}>
-                      {action.label}
-                    </a>
-                  ) : (
-                    <span class="action" aria-disabled="true">
-                      {action.label} <small>Próximamente</small>
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+          {world.note && (
+            <p class="world-note" style="--i:6">
+              {world.note}
+            </p>
           )}
-          <p class="world-note" style="--i:6">
-            {world.note}
-          </p>
         </article>
       ))}
     </div>

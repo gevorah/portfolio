@@ -1,20 +1,20 @@
 export const profile = {
   handle: 'gevorah',
-  name: 'Jhon Ijaji',
+  name: 'Jhon',
   title: 'Software engineer',
   location: 'Cali, Colombia',
   summary:
-    'Soy desarrollador full stack con foco en frontend y creative development. Aquí cada proyecto es un mundo y mi trayectoria, una constelación.',
-  education: 'Ingeniería de Sistemas, Universidad Icesi (2024)',
+    'I build web products across the stack, with a growing focus on frontend development and interactive experiences.',
+  education: 'Software Systems Engineering, Icesi University (2024)',
   about: [
-    'Soy ingeniero de software. Llevo cuatro años construyendo productos web, sobre todo con React y Java, y hoy lidero un equipo técnico.',
-    'Lo que más disfruto es el frontend y el creative development: el punto donde la ingeniería se convierte en algo que se puede tocar.',
-    'Me gusta entender los sistemas por dentro. Personalizo mi entorno de Linux y mis herramientas de desarrollo con el mismo cuidado que una interfaz.',
-    'Los videojuegos me enseñaron a apreciar el diseño interactivo: mundos que despiertan curiosidad y se explican al jugarlos.',
+    "I'm a software engineer. For the past four years I've built web products, mostly with React and Java, and today I lead a technical team.",
+    "Frontend is the part of the work I enjoy most. Lately I've been exploring creative development, where engineering turns into something you can touch.",
+    "I like understanding systems from the inside. I customize my Linux setup and my development tools with the same care I'd put into an interface.",
+    'Video games taught me to appreciate interactive design: worlds that spark curiosity and explain themselves as you play.',
   ],
   contact: [
     {
-      label: 'Correo',
+      label: 'Email',
       value: 'jhon.ijaji.o@gmail.com',
       href: 'mailto:jhon.ijaji.o@gmail.com',
     },

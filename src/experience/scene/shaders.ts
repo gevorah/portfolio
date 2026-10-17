@@ -1,4 +1,9 @@
 const noise = `
+// Simplex 3D noise: permute, taylorInvSqrt and snoise.
+// Copyright (C) 2011 Ashima Arts. All rights reserved.
+// Author: Ian McEwan, Ashima Arts. Maintainer: Stefan Gustavson.
+// Distributed under the MIT License. Full notice: /licenses/webgl-noise.txt
+// https://github.com/stegu/webgl-noise
 vec4 permute(vec4 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
 vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
 
@@ -74,7 +79,7 @@ void main() {
 }
 `;
 
-export const PLANET_KIND = { umbral: 0, terra: 1, giant: 2, moon: 3 } as const;
+export const PLANET_KIND = { umbral: 0, giant: 1, moon: 2 } as const;
 
 export const planetFragment = `
 uniform mat4 modelMatrix;
@@ -140,37 +145,6 @@ Surface surface(vec3 N, vec3 L) {
 #endif
 
 #if KIND == 1
-float terrain(vec3 p) {
-  vec3 q = p * 1.05 + uSeed;
-  float warp = fbm(q * 0.7, 2);
-  return fbm(q + warp * 0.35, 5) - 0.03;
-}
-
-Surface surface(vec3 N, vec3 L) {
-  vec3 p = vObj;
-  float h = terrain(p);
-  vec3 t1 = normalize(cross(p, vec3(0.0, 1.0, 0.001)));
-  vec3 t2 = cross(p, t1);
-  float e = 0.012;
-  float h1 = terrain(normalize(p + t1 * e));
-  float h2 = terrain(normalize(p + t2 * e));
-  float land = smoothstep(0.0, 0.012, h);
-  vec3 sea = mix(uColorA, uColorB, smoothstep(-0.16, 0.0, h) * 0.85);
-  float relief = smoothstep(0.02, 0.36, h);
-  vec3 ground = mix(uColorC, uColorD, relief);
-  ground = mix(ground, ground * vec3(0.62, 0.78, 0.60), smoothstep(0.0, 0.10, h) * (1.0 - relief) * 0.55);
-  vec3 albedo = mix(sea, ground, land);
-  float ice = smoothstep(0.84, 0.91, abs(p.y) + 0.05 * h);
-  albedo = mix(albedo, vec3(0.93, 0.91, 0.94), ice);
-  vec3 objNormal = normalize(p - land * 0.3 * ((h1 - h) * t1 + (h2 - h) * t2) / e);
-  vec3 normal = normalize(mat3(modelMatrix) * objNormal);
-  float clouds = smoothstep(0.22, 0.62, fbm(p * vec3(1.6, 3.4, 1.6) + vec3(uTime * 0.01, 0.0, uSeed.x), 4));
-  albedo = mix(albedo, vec3(0.96, 0.93, 0.92), clouds * 0.72);
-  return Surface(albedo, mix(normal, N, clouds), 0.45 * (1.0 - land) * (1.0 - clouds), 70.0, 1.0);
-}
-#endif
-
-#if KIND == 2
 Surface surface(vec3 N, vec3 L) {
   vec3 p = vObj;
   float warp = fbm(p * vec3(1.3, 3.2, 1.3) + uSeed, 3);
@@ -197,7 +171,7 @@ Surface surface(vec3 N, vec3 L) {
 }
 #endif
 
-#if KIND == 3
+#if KIND == 2
 Surface surface(vec3 N, vec3 L) {
   float tone = 0.78 + 0.3 * fbm(vObj * 3.0 + uSeed, 3);
   return Surface(uColorA * tone, N, 0.0, 1.0, 1.0);
@@ -229,7 +203,7 @@ void main() {
   color += uAtmosphere * fresnel * (uAtmosphereStrength * (0.12 + 0.88 * lit) + uHover * 0.55);
 
   color = 1.0 - exp(-color * 1.25);
-  color *= mix(1.0, 0.36, uRecede) * (1.0 - 0.82 * uVeil);
+  color *= mix(1.0, 0.15, uRecede) * (1.0 - 0.82 * uVeil);
   gl_FragColor = vec4(color, 1.0);
   #include <colorspace_fragment>
 }
@@ -278,6 +252,7 @@ uniform float uPlanetRadius;
 uniform vec2 uRadii;
 uniform vec3 uColorA;
 uniform vec3 uColorB;
+uniform float uOpacity;
 uniform float uRecede;
 uniform float uVeil;
 
@@ -298,8 +273,8 @@ void main() {
   float miss = length(toCenter - L * along);
   float shadow = along > 0.0 ? smoothstep(uPlanetRadius * 0.94, uPlanetRadius * 1.04, miss) : 1.0;
 
-  float alpha = density * edges * 0.82;
-  color *= (0.12 + 0.88 * shadow) * mix(1.0, 0.5, uRecede);
+  float alpha = density * edges * uOpacity;
+  color *= (0.12 + 0.88 * shadow) * mix(1.0, 0.2, uRecede);
   alpha *= 1.0 - 0.85 * uVeil;
   gl_FragColor = vec4(color, alpha);
   #include <colorspace_fragment>
@@ -381,13 +356,16 @@ void main() {
 export const threadVertex = `
 attribute float aProgress;
 attribute float aWeight;
+attribute vec2 aKey;
 
 varying float vProgress;
 varying float vWeight;
+varying vec2 vKey;
 
 void main() {
   vProgress = aProgress;
   vWeight = aWeight;
+  vKey = aKey;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
@@ -395,14 +373,19 @@ void main() {
 export const threadFragment = `
 uniform float uDraw;
 uniform float uOpacity;
+uniform vec2 uFocus;
 uniform vec3 uColor;
+uniform vec3 uAccent;
 
 varying float vProgress;
 varying float vWeight;
+varying vec2 vKey;
 
 void main() {
   float drawn = 1.0 - smoothstep(uDraw - 0.04, uDraw, vProgress);
-  gl_FragColor = vec4(uColor * drawn * vWeight * uOpacity, 1.0);
+  float near = exp(-pow(distance(vKey, uFocus) / 0.22, 2.0));
+  vec3 color = mix(uColor, uAccent, near * 0.7);
+  gl_FragColor = vec4(color * drawn * vWeight * uOpacity * (0.5 + 1.2 * near), 1.0);
   #include <colorspace_fragment>
 }
 `;

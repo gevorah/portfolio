@@ -5,13 +5,13 @@ import avatar from '@/assets/avatar.png';
 import { profile } from '@/data/profile';
 ---
 
-<div class="outro" id="about" tabindex="-1">
-  <section class="about" aria-labelledby="about-title">
+<div class="outro">
+  <section class="about" id="about" aria-labelledby="about-title" tabindex="-1">
     <div>
       <p class="about-portrait">
         <Image
           src={avatar}
-          alt="Avatar de gevorah: un ojo de reptil"
+          alt="gevorah avatar: a reptile eye"
           width={144}
           height={144}
         />
@@ -22,8 +22,7 @@ import { profile } from '@/data/profile';
         </span>
       </p>
       <h2 class="display" id="about-title">
-        Ingeniería
-        <span class="voice">con curiosidad.</span>
+        Engineering, with curiosity.
       </h2>
     </div>
     <div class="about-body prose">
@@ -35,14 +34,13 @@ import { profile } from '@/data/profile';
   </section>
 
   <section
+    class="contact"
     id="contact"
-    tabindex="-1"
     aria-labelledby="contact-title"
-    style="margin-top: clamp(5rem, 12vw, 9rem)"
+    tabindex="-1"
   >
     <h2 class="display" id="contact-title">
-      Hablemos
-      <span class="voice">de tu próximo mundo.</span>
+      Let’s talk.
     </h2>
     <ul class="contact-list">
       {profile.contact.map((channel) => (
@@ -60,7 +58,7 @@ import { profile } from '@/data/profile';
       ))}
     </ul>
     <p class="site-footer">
-      {profile.handle}, Small Worlds. Hecho con Astro y Three.js.
+      {profile.handle}, Small Worlds. Built with Astro and Three.js.
     </p>
   </section>
 </div>

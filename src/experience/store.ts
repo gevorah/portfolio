@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 
-import { defaultStageId } from '@/data/career';
+import { defaultStageId, stageIds } from '@/data/career';
 import { worldIds } from '@/data/worlds';
 
 import { motionPolicy, type MotionPolicy } from './motion';
@@ -149,8 +149,13 @@ export function setHover(id: string | null) {
   invalidate();
 }
 
+export function adjacentStage(direction: 1 | -1) {
+  const index = stageIds.indexOf(state.stageId) + direction;
+  return stageIds[(index + stageIds.length) % stageIds.length];
+}
+
 export function selectStage(id: string) {
-  if (state.stageId === id) return;
+  if (state.stageId === id || !stageIds.includes(id)) return;
   state.stageId = id;
   notify();
 }

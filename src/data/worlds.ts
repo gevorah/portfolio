@@ -1,8 +1,10 @@
 export type WorldStage = 'world' | 'signal';
 
-export interface WorldAction {
-  label: string;
-  href?: string;
+export type StudyImage = 'high-tide' | 'low-tide';
+
+export interface WorldStudy {
+  caption: string;
+  frames: Array<{ image: StudyImage; alt: string; label: string }>;
 }
 
 export interface World {
@@ -10,13 +12,11 @@ export interface World {
   name: string;
   tagline: string;
   kind: string;
-  status: string;
+  status?: string;
   context?: string;
   description: string;
-  role?: string;
-  technologies: string[];
-  actions: WorldAction[];
-  note: string;
+  study?: WorldStudy;
+  note?: string;
   stage: WorldStage;
 }
 
@@ -24,71 +24,57 @@ export const worlds: World[] = [
   {
     id: 'umbral',
     name: 'Umbral',
-    tagline: 'Un mundo que cambia con las mareas.',
-    kind: 'Experimento creativo',
-    status: 'En desarrollo',
-    context: 'Small Worlds',
+    tagline: 'An ocean world shaped by extraordinary tides.',
+    kind: 'Creative study',
+    context: 'Universe',
     description:
-      'Un mundo oceánico con mareas extraordinarias: la misma costa es otro lugar en pleamar y en bajamar. Es el primer mundo de Small Worlds, mi laboratorio de creative development.',
-    role: 'Dirección de arte, diseño de interacción y desarrollo',
-    technologies: ['Three.js', 'GLSL', 'Blender', 'Python'],
-    actions: [{ label: 'Explorar experiencia' }, { label: 'Caso de estudio' }],
-    note: 'La vista orbital usa los mapas del propio experimento. La experiencia interactiva todavía no está publicada.',
-    stage: 'world',
-  },
-  {
-    id: 'travel',
-    name: 'Plataforma de viajes',
-    tagline: 'Historias de aventura, contadas por quienes las viven.',
-    kind: 'Trabajo profesional',
-    status: 'Febrero – julio de 2024',
-    context: 'Aspis Consulting',
-    description:
-      'Una plataforma de viajes para aficionados a la aventura, desarrollada con React. Diseñé e implementé un sistema de blogging interactivo para que los usuarios compartan sus experiencias de viaje.',
-    role: 'Full Stack Developer',
-    technologies: ['React'],
-    actions: [{ label: 'Caso de estudio' }],
-    note: 'Este planeta es una representación conceptual provisional, no una imagen del producto.',
+      'Umbral explores the atmosphere of a distant ocean world, where vast horizons, unfamiliar landscapes, and a sense of mystery invite you to imagine what lies beyond.',
+    study: {
+      caption: 'One coastline, revealed and reclaimed by the sea.',
+      frames: [
+        {
+          image: 'high-tide',
+          alt: 'A rocky overhang and sea stacks rising from calm water at high tide.',
+          label: 'High tide',
+        },
+        {
+          image: 'low-tide',
+          alt: 'The same coast at low tide, with the rock shelf, pools and a cave exposed.',
+          label: 'Low tide',
+        },
+      ],
+    },
     stage: 'world',
   },
   {
     id: 'finance',
-    name: 'Finanzas personales',
-    tagline: 'Un proyecto propio que apenas toma forma.',
-    kind: 'Proyecto personal',
-    status: 'En desarrollo',
+    name: 'Personal Finance',
+    tagline: 'Making everyday finances easier to understand.',
+    kind: 'Personal project',
+    status: 'In development',
     description:
-      'Un proyecto personal en desarrollo. Todavía no hay funcionalidades ni decisiones técnicas documentadas; este mundo crecerá cuando existan.',
-    role: 'Diseño y desarrollo',
-    technologies: [],
-    actions: [{ label: 'Caso de estudio' }],
-    note: 'Planeta conceptual provisional. Aún no hay un caso de estudio.',
+      'I’m building a personal finance application focused on helping people better understand and manage their money.',
     stage: 'world',
   },
   {
     id: 'card-battler',
-    name: 'Card battler táctico',
-    tagline: 'Duelos decididos por sus personajes.',
-    kind: 'Exploración futura',
-    status: 'Planeado',
+    name: 'Parallax Zero',
+    tagline: 'Characters shape the duel. Your decisions decide it.',
+    kind: 'Tactical card battler',
+    status: 'In development',
     description:
-      'Un juego de cartas táctico centrado en duelos e impulsado por sus personajes. Es una idea en el horizonte, no un producto.',
-    technologies: [],
-    actions: [],
-    note: 'Todavía es una señal: tendrá un planeta cuando exista algo que mostrar.',
+      'A character-driven tactical card battler built around reading your opponent, committing to your moves, and facing the consequences.',
     stage: 'signal',
   },
   {
     id: 'code-assistant',
-    name: 'Asistente de código',
-    tagline: 'Un asistente que reacciona a eventos.',
-    kind: 'Exploración futura',
-    status: 'Planeado',
+    name: 'Code assistant',
+    tagline: 'An assistant that reacts to events.',
+    kind: 'Future exploration',
+    status: 'Planned',
     description:
-      'Un asistente de código con arquitectura orientada a eventos. Por ahora es una señal lejana, sin implementación.',
-    technologies: [],
-    actions: [],
-    note: 'Todavía es una señal: tendrá un planeta cuando exista algo que mostrar.',
+      'An event-driven code assistant. For now it is a distant signal with nothing built.',
+    note: 'Still a signal. It becomes a planet once there is something to show.',
     stage: 'signal',
   },
 ];

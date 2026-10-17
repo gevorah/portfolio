@@ -1,82 +1,115 @@
+export type StageCategory = 'employment' | 'collaboration';
+
+export const categoryLabels: Record<StageCategory, string> = {
+  employment: 'Employment',
+  collaboration: 'Collaboration',
+};
+
 export interface CareerStage {
   id: string;
   company: string;
   shortName?: string;
+  category: StageCategory;
   role: string;
   period: string;
-  highlights: string[];
+  start: string;
+  end: string | null;
+  summary: string;
+  technologies: string[];
   rank: 'major' | 'minor';
 }
 
 export const careerStages: CareerStage[] = [
   {
     id: 'icesi',
-    company: 'Universidad Icesi',
+    company: 'Icesi University',
     shortName: 'Icesi',
+    category: 'employment',
     role: 'Software Developer',
-    period: 'Abril de 2022 – junio de 2023',
-    highlights: [
-      'Construí una plataforma con Java y React para gestionar la distribución de alimentación a estudiantes becados.',
-    ],
+    period: 'Apr 2022 - Jun 2023',
+    start: '2022-04',
+    end: '2023-06',
+    summary:
+      'I built a platform to manage meal distribution for scholarship students, contributing to both its frontend and backend.',
+    technologies: ['Java', 'React'],
     rank: 'major',
   },
   {
     id: 'appsco',
     company: 'Apps.co',
+    category: 'collaboration',
     role: 'Frontend Developer',
-    period: 'Diciembre de 2022',
-    highlights: [
-      'Desarrollé y actualicé proyectos en React, mejorando la experiencia de usuario y el rendimiento de la interfaz.',
-    ],
+    period: 'Dec 2022',
+    start: '2022-12',
+    end: '2022-12',
+    summary:
+      'I developed and maintained frontend features across multiple projects, improving usability and interface performance.',
+    technologies: ['React', 'Next.js'],
     rank: 'minor',
   },
   {
     id: 'soytusalud',
     company: 'Fundación Soy Tu Salud',
     shortName: 'Soy Tu Salud',
+    category: 'collaboration',
     role: 'Frontend Developer',
-    period: 'Enero – junio de 2023',
-    highlights: [
-      'Desarrollé un sitio web con React y Next.js para ofrecer apoyo y recursos a madres solteras.',
-    ],
+    period: 'Jan - Jun 2023',
+    start: '2023-01',
+    end: '2023-06',
+    summary:
+      'I developed a website providing information and support resources for single mothers.',
+    technologies: ['React', 'Next.js'],
     rank: 'minor',
   },
   {
     id: 'encora',
     company: 'Encora',
+    category: 'employment',
     role: 'Software Developer',
-    period: 'Julio de 2023 – enero de 2024',
-    highlights: [
-      'Construí una plataforma de blogging con React y Node.js.',
-      'Investigué y documenté tecnologías de RPA para la optimización de procesos.',
-    ],
+    period: 'Jul 2023 - Jan 2024',
+    start: '2023-07',
+    end: '2024-01',
+    summary:
+      'I built a blogging platform and researched robotic process automation tools to support process optimization initiatives.',
+    technologies: ['React', 'Node.js'],
     rank: 'major',
   },
   {
     id: 'aspis',
     company: 'Aspis Consulting',
     shortName: 'Aspis',
+    category: 'employment',
     role: 'Full Stack Developer',
-    period: 'Febrero – julio de 2024',
-    highlights: [
-      'Desarrollé una plataforma de viajes con React para aficionados a la aventura.',
-      'Diseñé e implementé un sistema de blogging interactivo para compartir experiencias de viaje.',
-    ],
+    period: 'Feb - Jul 2024',
+    start: '2024-02',
+    end: '2024-07',
+    summary:
+      'I developed a travel platform for a consulting client, including an interactive blogging experience for sharing travel stories.',
+    technologies: ['React', 'Next.js'],
     rank: 'major',
   },
   {
     id: 'zelity',
     company: 'Zelity',
+    category: 'employment',
     role: 'Technical Lead',
-    period: 'Agosto de 2024 – actualidad',
-    highlights: [
-      'Coordino al equipo de desarrollo y mantengo la comunicación directa con el cliente.',
-      'Implementé prácticas de CI/CD que redujeron los errores y los tiempos de entrega en un 70 %.',
-      'Desarrollo y mantengo plataformas web con React, Next.js y Angular, e integro soluciones de AWS.',
-      'Diseñé la arquitectura limpia de un proyecto Java EE y la estructura de su base de datos.',
+    period: 'Aug 2024 - Present',
+    start: '2024-08',
+    end: null,
+    summary:
+      'I lead the development team and coordinate delivery with the client. I also build and maintain web platforms, design application and database architectures from the ground up, and improve delivery through CI/CD.',
+    technologies: [
+      'React',
+      'Next.js',
+      'Java',
+      '.NET',
+      'SQL Server',
+      'AWS',
+      'Azure',
     ],
     rank: 'major',
   },
 ];
 
+export const stageIds = careerStages.map((stage) => stage.id);
 export const defaultStageId = 'zelity';

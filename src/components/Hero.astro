@@ -9,24 +9,17 @@ import { profile } from '@/data/profile';
   tabindex="-1"
 >
   <div class="hero-copy">
-    <p class="hero-identity">
-      <strong>{profile.name}</strong>, {profile.title.toLowerCase()}
-    </p>
-    <h1 class="display" id="hero-title">
-      <span>
-        <span>Construyo</span> <span>sistemas.</span>
-      </span>
-      <span class="voice">
-        <span>Imagino</span> <span>mundos.</span>
-      </span>
+    <h1 class="hero-title" id="hero-title">
+      <span class="hero-greeting">Hi, I'm {profile.name},</span>
+      <span class="hero-role">a {profile.title.toLowerCase()}.</span>
     </h1>
-    <p class="prose">{profile.summary}</p>
+    <p class="prose hero-summary">{profile.summary}</p>
     <div class="hero-actions">
       <a class="button" href="#work">
-        Explorar mi trabajo
+        Explore my work
       </a>
       <a class="link" href="#experience">
-        Ver mi trayectoria
+        My experience
       </a>
     </div>
   </div>

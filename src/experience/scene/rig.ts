@@ -175,7 +175,7 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       );
       const blend = state.weights.work + state.weights.career;
       const systemPx = THREE.MathUtils.lerp(heroPx, atlasPx, blend);
-      return THREE.MathUtils.clamp(35 / systemPx, 1, 1.75);
+      return THREE.MathUtils.clamp(42 / systemPx, 1, 1.9);
     },
     constellationScale(frames: Frames) {
       const frame = frames.career;
@@ -216,7 +216,7 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       }
 
       careerSubject.copy(input.constellationCenter);
-      if (input.selectedStar) careerSubject.lerp(input.selectedStar, 0.14);
+      if (input.selectedStar) careerSubject.lerp(input.selectedStar, 0.2);
       career.subject.lerp(
         careerSubject,
         career.subject.lengthSq() === 0 ? 1 : input.damp(3),

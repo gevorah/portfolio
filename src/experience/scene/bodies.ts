@@ -64,6 +64,7 @@ export interface WorldBody {
 
 const color = (hex: string) => new THREE.Color(hex);
 const TAU = Math.PI * 2;
+const UP = new THREE.Vector3(0, 1, 0);
 
 export const createSharedGeometry = (): SharedGeometry => ({
   sphere: new THREE.SphereGeometry(1, 96, 64),
@@ -188,6 +189,7 @@ function createPlanet(
           },
           uColorA: { value: color(look.ring.colors[0]) },
           uColorB: { value: color(look.ring.colors[1]) },
+          uOpacity: { value: look.ring.opacity },
           uRecede: { value: 0 },
           uVeil: uniforms.uVeil,
         },
@@ -225,9 +227,12 @@ function createPlanet(
   }
 
   const ringNormal = new THREE.Vector3();
+  const radial = new THREE.Vector3();
+  const tangent = new THREE.Vector3();
   const haloStrength = look.halo?.strength ?? 0;
   let spin = 0;
   let hover = 0;
+  let moonTime = 0;
   const body: WorldBody = {
     id,
     group,
@@ -280,12 +285,16 @@ function createPlanet(
         ringUniforms.uRecede.value = uniforms.uRecede.value;
       }
       if (moon && look.moon && moonUniforms) {
-        const angle = (TAU * context.orbitTime) / look.moon.period;
-        moon.position.set(
-          Math.cos(angle) * look.moon.distance,
-          Math.sin(angle) * 0.35,
-          Math.sin(angle) * look.moon.distance,
-        );
+        moonTime += context.ambientDt * 0.4 * attention;
+        const angle = (TAU * (context.orbitTime + moonTime)) / look.moon.period;
+        radial.copy(group.position).normalize();
+        tangent.crossVectors(UP, radial).normalize();
+        moon.position
+          .copy(tangent)
+          .multiplyScalar(Math.cos(angle))
+          .addScaledVector(UP, Math.sin(angle) * 0.94)
+          .addScaledVector(radial, Math.sin(angle) * 0.34)
+          .multiplyScalar(look.moon.distance);
         moonUniforms.uCenter.value
           .copy(moon.position)
           .multiplyScalar(scale)

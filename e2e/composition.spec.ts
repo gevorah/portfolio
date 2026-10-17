@@ -61,6 +61,7 @@ for (const viewport of [
       for (const id of ['umbral', 'finance']) {
         for (const time of ORBIT_TIMES) {
           await page.evaluate((t) => window.__universe.setOrbitTime(t), time);
+          await page.waitForTimeout(150);
           await selectWorld(page, id);
           await settled(page, 1);
           await page.waitForTimeout(700);

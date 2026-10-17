@@ -37,7 +37,30 @@ describe('resolveTimeline', () => {
     });
   });
 
-  it('is reversible: the same scroll position always gives the same result', () => {
-    expect(resolveTimeline(0.3, 0, 0)).toEqual(resolveTimeline(0.3, 0, 0));
+  it('changes weights gradually in both scroll directions', () => {
+    const steps = Array.from({ length: 41 }, (_, index) => index / 20);
+    const positions = steps.map((step) => [
+      Math.min(step, 1),
+      Math.max(step - 1, 0),
+    ]);
+    const forward = positions.map(([work, career]) =>
+      resolveTimeline(work, career, 0),
+    );
+    const backward = [...positions]
+      .reverse()
+      .map(([work, career]) => resolveTimeline(work, career, 0))
+      .reverse();
+    expect(backward).toEqual(forward);
+    forward.slice(1).forEach((current, index) => {
+      const previous = forward[index];
+      expect(current.weights.hero).toBeLessThanOrEqual(previous.weights.hero);
+      expect(current.weights.career).toBeGreaterThanOrEqual(
+        previous.weights.career,
+      );
+      for (const zone of ['hero', 'work', 'career'] as const)
+        expect(
+          Math.abs(current.weights[zone] - previous.weights[zone]),
+        ).toBeLessThanOrEqual(0.35);
+    });
   });
 });

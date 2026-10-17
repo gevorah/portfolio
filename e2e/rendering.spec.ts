@@ -34,7 +34,7 @@ test.describe('reduced motion', () => {
   });
 });
 
-test('ambient motion renders at a reduced cadence and stops behind Contacto', async ({
+test('ambient motion renders at a reduced cadence and stops behind Contact', async ({
   page,
 }) => {
   await page.addInitScript(countDrawCalls);
@@ -55,9 +55,7 @@ test('ambient motion renders at a reduced cadence and stops behind Contacto', as
 test.describe('adaptive resolution', () => {
   test.use({ deviceScaleFactor: 2 });
 
-  test('resting in Contacto does not lower the resolution', async ({
-    page,
-  }) => {
+  test('resting in Contact does not lower the resolution', async ({ page }) => {
     await open(page);
     const width = () =>
       page.evaluate(
