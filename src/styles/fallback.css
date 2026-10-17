@@ -47,7 +47,8 @@
     margin-top: 2.5rem;
   }
 
-  :is(html:not(.js), .no-webgl) :is(.work-content, .career-content) {
+  :is(html:not(.js), .no-webgl)
+    :is(.work-content, .career-intro, .career-content) {
     opacity: 1;
   }
 
@@ -56,18 +57,26 @@
   }
 
   @media (width >= 56.25rem) {
-    :is(html:not(.js), .no-webgl) :is(.work, .career) {
+    :is(html:not(.js), .no-webgl) .work {
       display: block;
     }
 
-    :is(html:not(.js), .no-webgl) :is(.work-content, .career-content) {
+    :is(html:not(.js), .no-webgl) .career-content {
+      display: contents;
+    }
+
+    :is(html:not(.js), .no-webgl) :is(.work-content, .career) {
       display: grid;
       grid-template-columns: 5fr 6fr;
       grid-template-areas:
         'intro detail'
         'index detail';
+      grid-template-rows: auto 1fr;
       align-items: start;
       gap: 0 4rem;
+    }
+
+    :is(html:not(.js), .no-webgl) .work-content {
       width: 100%;
       min-height: 0;
     }
@@ -89,6 +98,11 @@
       justify-self: stretch;
       width: auto;
       margin-top: 0;
+    }
+
+    :is(html:not(.js), .no-webgl) .stage-panel {
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-ridge);
     }
 
     html:not(.js) .work-detail {

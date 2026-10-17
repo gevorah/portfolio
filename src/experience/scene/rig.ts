@@ -285,6 +285,7 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       const beyondWork = state.weights.career + beyondCareer;
       mixPose(hero, work, beyondWork >= 0.999 ? 1 : toWork, system);
       mixPose(system, career, beyondWork, past);
+      past.distance *= 1 + 4 * beyondWork * (1 - beyondWork);
       mixPose(past, about, beyondCareer, comet);
       comet.distance *= 1 + 2.4 * beyondCareer * (1 - beyondCareer);
       mixPose(comet, contact, state.weights.contact, final);

@@ -243,3 +243,25 @@ test('a project opened by URL is framed from the first frame of a late scene', a
   expect(Math.abs(first.center.x - settled.center.x)).toBeLessThan(20);
   expect(Math.abs(first.center.y - settled.center.y)).toBeLessThan(20);
 });
+
+test('Work hands off to Experience without an empty sky between them', async ({
+  page,
+}) => {
+  await open(page);
+  for (const progress of [0.4, 0.45, 0.5]) {
+    await page.evaluate((t) => {
+      const top = (id: string) =>
+        document.getElementById(id)!.getBoundingClientRect().top + scrollY;
+      const work = top('work');
+      window.scrollTo({
+        top: work + (top('experience') - work) * t,
+        behavior: 'instant',
+      });
+    }, progress);
+    await page.waitForTimeout(900);
+    expect(
+      await sceneCoverage(page, '#scene'),
+      `t=${progress}`,
+    ).toBeGreaterThan(0.0015);
+  }
+});

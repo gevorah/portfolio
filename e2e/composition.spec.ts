@@ -189,3 +189,50 @@ for (const [width, height, fontSize] of [
     }
   });
 }
+
+for (const viewport of [
+  { width: 1920, height: 1080 },
+  { width: 1440, height: 900 },
+  { width: 1440, height: 700 },
+  { width: 1024, height: 768 },
+]) {
+  test(`Experience frames its constellation above the introduction at ${viewport.width}×${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await open(page);
+    await scrollTo(page, 'experience');
+    await expect(page.locator('.star-marker:not([data-offstage])')).toHaveCount(
+      6,
+      { timeout: 15_000 },
+    );
+    await page.waitForTimeout(1500);
+    const layout = await page.evaluate(() => {
+      const box = (element: Element) => element.getBoundingClientRect();
+      const intro = box(document.querySelector('.career-intro')!);
+      const panel = box(document.querySelector('.stage-panel')!);
+      const gutter = parseFloat(
+        getComputedStyle(document.getElementById('experience')!).paddingLeft,
+      );
+      const stars = [
+        ...document.querySelectorAll('.star-marker:not([data-offstage])'),
+      ].flatMap((marker) => [
+        box(marker),
+        box(marker.querySelector('.marker-label')!),
+      ]);
+      return {
+        gutter,
+        introTop: intro.top,
+        introRight: intro.right,
+        panelLeft: panel.left,
+        starsLeft: Math.min(...stars.map((rect) => rect.left)),
+        starsRight: Math.max(...stars.map((rect) => rect.right)),
+        starsBottom: Math.max(...stars.map((rect) => rect.bottom)),
+      };
+    });
+    expect(layout.introRight).toBeLessThan(layout.panelLeft);
+    expect(layout.starsRight).toBeLessThan(layout.panelLeft);
+    expect(layout.starsLeft).toBeGreaterThanOrEqual(layout.gutter);
+    expect(layout.starsBottom).toBeLessThan(layout.introTop);
+  });
+}

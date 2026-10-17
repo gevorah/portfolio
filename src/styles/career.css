@@ -9,6 +9,15 @@
     inset: 12% 6% 14%;
   }
 
+  .career-intro {
+    position: relative;
+    z-index: 3;
+  }
+
+  .js .career-intro {
+    opacity: calc(var(--career) * 3 - 2);
+  }
+
   .js .career-content {
     opacity: calc(var(--career) * 1.8 - 0.4);
   }
@@ -115,16 +124,21 @@
 
   @media (width >= 56.25rem) {
     .career {
-      flex-direction: row;
-      align-items: flex-start;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--panel-width);
+      grid-template-rows: minmax(0, 1fr) auto;
+      column-gap: clamp(2rem, 4.6vw, 5.5rem);
+    }
+
+    .career-intro {
+      grid-area: 2 / 1;
+      max-width: 30rem;
     }
 
     .career .stage-slot {
       position: sticky;
       top: 0;
-      flex: none;
-      width: 62%;
+      grid-area: 1 / 1 / -1 / 2;
       height: 100svh;
       min-height: 0;
       margin: calc(var(--screen-top) * -1) 0 calc(var(--screen-bottom) * -1)
@@ -132,12 +146,19 @@
     }
 
     .career [data-frame] {
-      inset: 16% 4% 12% 6%;
+      inset: 10% 4% calc(var(--screen-bottom) + 8.5rem)
+        calc(var(--gutter) + 1.5rem);
     }
 
     .career-content {
+      grid-area: 1 / 2 / -1 / 3;
       align-self: center;
-      width: var(--panel-width);
+    }
+
+    .stage-panel {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
     }
   }
 }
