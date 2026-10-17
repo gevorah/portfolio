@@ -4,7 +4,7 @@ export type StudyImage = 'high-tide' | 'low-tide';
 
 export interface WorldStudy {
   caption: string;
-  frames: Array<{ image: StudyImage; alt: string; label: string }>;
+  frames: readonly { image: StudyImage; alt: string; label: string }[];
 }
 
 export interface World {
@@ -20,7 +20,7 @@ export interface World {
   stage: WorldStage;
 }
 
-export const worlds: World[] = [
+const entries = [
   {
     id: 'umbral',
     name: 'Umbral',
@@ -77,6 +77,13 @@ export const worlds: World[] = [
     note: 'Still a signal. It becomes a planet once there is something to show.',
     stage: 'signal',
   },
-];
+] as const satisfies readonly World[];
 
-export const worldIds = worlds.map((world) => world.id);
+export type WorldId = (typeof entries)[number]['id'];
+
+export const worlds: readonly (World & { id: WorldId })[] = entries;
+
+export const worldIds: readonly WorldId[] = worlds.map((world) => world.id);
+
+export const isWorldId = (value: string | null | undefined): value is WorldId =>
+  worldIds.includes(value as WorldId);

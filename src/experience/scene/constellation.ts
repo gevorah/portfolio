@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import { careerStages, type CareerStage } from '@/data/career';
+import { careerStages, type CareerStage, type StageId } from '@/data/career';
 
 import { seededRandom, type SharedUniforms } from './bodies';
 import {
@@ -55,9 +55,9 @@ export function createConstellation(shared: SharedUniforms) {
     new THREE.Matrix4().makeBasis(right, up, toViewer),
   );
 
-  const local = (id: string) =>
+  const local = (id: StageId) =>
     new THREE.Vector3(...constellation[id].position);
-  const stars = careerStages.filter((stage) => constellation[stage.id]);
+  const stars = careerStages;
   const world = new Map(stars.map((stage) => [stage.id, new THREE.Vector3()]));
   const last = stars.length - 1;
 
@@ -65,7 +65,7 @@ export function createConstellation(shared: SharedUniforms) {
   const branches = constellationThreads.filter(
     (thread) => thread.kind === 'branch',
   );
-  const keys = new Map<string, THREE.Vector2>();
+  const keys = new Map<StageId, THREE.Vector2>();
   path.forEach((thread, index) => {
     keys.set(thread.from, new THREE.Vector2(index / path.length, 0));
     keys.set(thread.to, new THREE.Vector2((index + 1) / path.length, 0));
@@ -312,7 +312,7 @@ export function createConstellation(shared: SharedUniforms) {
     update(
       damp: (rate: number) => number,
       visibility: number,
-      selectedId: string,
+      selectedId: StageId,
     ) {
       group.visible = visibility > 0.002;
       starUniforms.uOpacity.value = visibility;

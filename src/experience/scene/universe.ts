@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 
+import type { StageId } from '@/data/career';
+import type { WorldId } from '@/data/worlds';
+
 import {
   LABEL_GAP,
   resolveLabels,
@@ -27,8 +30,8 @@ export interface UniverseElements {
   canvas: HTMLCanvasElement;
   frames: Record<FrameName, HTMLElement>;
   protect: HTMLElement;
-  worldMarkers: Map<string, HTMLElement>;
-  starMarkers: Map<string, HTMLElement>;
+  worldMarkers: Map<WorldId, HTMLElement>;
+  starMarkers: Map<StageId, HTMLElement>;
   onAvailabilityChange(available: boolean): void;
 }
 

@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 
-import { defaultStageId, stageIds } from '@/data/career';
-import { worldIds } from '@/data/worlds';
+import { defaultStageId, stageIds, type StageId } from '@/data/career';
+import { worldIds, type WorldId } from '@/data/worlds';
 
 import { motionPolicy, type MotionPolicy } from './motion';
 import type { Zone, ZoneWeights } from './timeline';
@@ -10,13 +10,13 @@ export interface ExperienceState {
   zone: Zone;
   weights: ZoneWeights;
   outro: number;
-  focusId: string | null;
+  focusId: WorldId | null;
   focused: boolean;
   focus: number;
   focusShift: number;
   recede: number;
-  hoverId: string | null;
-  stageId: string;
+  hoverId: WorldId | null;
+  stageId: StageId;
   motion: MotionPolicy;
 }
 
@@ -121,8 +121,7 @@ motionQuery.addEventListener('change', (event) => {
 
 export const selectedWorld = () => (state.focused ? state.focusId : null);
 
-export function focusWorld(id: string) {
-  if (!worldIds.includes(id)) return;
+export function focusWorld(id: WorldId) {
   if (state.focused && state.focusId === id) return;
   state.focusId = id;
   state.focused = true;
@@ -138,12 +137,12 @@ export function returnToSystem() {
 }
 
 export function adjacentWorld(direction: 1 | -1) {
-  const index = worldIds.indexOf(state.focusId ?? '');
-  if (index < 0) return null;
+  if (state.focusId === null) return null;
+  const index = worldIds.indexOf(state.focusId);
   return worldIds[(index + direction + worldIds.length) % worldIds.length];
 }
 
-export function setHover(id: string | null) {
+export function setHover(id: WorldId | null) {
   if (state.hoverId === id) return;
   state.hoverId = id;
   invalidate();
@@ -154,8 +153,8 @@ export function adjacentStage(direction: 1 | -1) {
   return stageIds[(index + stageIds.length) % stageIds.length];
 }
 
-export function selectStage(id: string) {
-  if (state.stageId === id || !stageIds.includes(id)) return;
+export function selectStage(id: StageId) {
+  if (state.stageId === id) return;
   state.stageId = id;
   notify();
 }

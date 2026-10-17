@@ -13,9 +13,12 @@ export function historyMode(
   return 'replace';
 }
 
-export function worldFromUrl(href: string, validIds: readonly string[]) {
+export function worldFromUrl<Id extends string>(
+  href: string,
+  validIds: readonly Id[],
+): Id | null {
   const id = new URL(href).searchParams.get(WORLD_PARAM);
-  return id !== null && validIds.includes(id) ? id : null;
+  return validIds.find((valid) => valid === id) ?? null;
 }
 
 export function urlForWorld(href: string, id: string | null) {

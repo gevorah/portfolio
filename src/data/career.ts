@@ -15,11 +15,11 @@ export interface CareerStage {
   start: string;
   end: string | null;
   summary: string;
-  technologies: string[];
+  technologies: readonly string[];
   rank: 'major' | 'minor';
 }
 
-export const careerStages: CareerStage[] = [
+const entries = [
   {
     id: 'icesi',
     company: 'Icesi University',
@@ -109,7 +109,17 @@ export const careerStages: CareerStage[] = [
     ],
     rank: 'major',
   },
-];
+] as const satisfies readonly CareerStage[];
 
-export const stageIds = careerStages.map((stage) => stage.id);
-export const defaultStageId = 'zelity';
+export type StageId = (typeof entries)[number]['id'];
+
+export const careerStages: readonly (CareerStage & { id: StageId })[] = entries;
+
+export const stageIds: readonly StageId[] = careerStages.map(
+  (stage) => stage.id,
+);
+
+export const isStageId = (value: string | null | undefined): value is StageId =>
+  stageIds.includes(value as StageId);
+
+export const defaultStageId: StageId = 'zelity';

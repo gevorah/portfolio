@@ -1,3 +1,6 @@
+import type { StageId } from '@/data/career';
+import type { WorldId } from '@/data/worlds';
+
 export type SurfaceKind = 'umbral' | 'giant';
 
 export interface OrbitLook {
@@ -44,7 +47,7 @@ export type WorldLook = PlanetLook | SignalLook;
 export const SUN_RADIUS = 1.55;
 export const SIGNAL_ORBIT = 16.9;
 
-export const looks: Record<string, WorldLook> = {
+export const looks: Record<WorldId, WorldLook> = {
   umbral: {
     type: 'planet',
     surface: 'umbral',
@@ -106,7 +109,7 @@ export interface ConstellationStar {
   label?: 'below';
 }
 
-export const constellation: Record<string, ConstellationStar> = {
+export const constellation: Record<StageId, ConstellationStar> = {
   icesi: { position: [-1.7, -0.32, 0.3] },
   appsco: { position: [-1.38, -1.04, -0.5] },
   soytusalud: { position: [-0.72, -0.8, 0.55], label: 'below' },
@@ -116,8 +119,8 @@ export const constellation: Record<string, ConstellationStar> = {
 };
 
 export const constellationThreads: Array<{
-  from: string;
-  to: string;
+  from: StageId;
+  to: StageId;
   kind: 'path' | 'branch';
 }> = [
   { from: 'icesi', to: 'encora', kind: 'path' },

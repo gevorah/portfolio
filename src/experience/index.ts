@@ -1,5 +1,5 @@
-import { stageIds } from '@/data/career';
-import { worldIds } from '@/data/worlds';
+import { isStageId, stageIds, type StageId } from '@/data/career';
+import { isWorldId, worldIds, type WorldId } from '@/data/worlds';
 
 import { historyMode, urlForWorld, WORLD_PARAM, worldFromUrl } from './history';
 import {
@@ -27,27 +27,33 @@ function one<T extends HTMLElement>(selector: string) {
 const all = <T extends HTMLElement>(selector: string) => [
   ...document.querySelectorAll<T>(selector),
 ];
-const byData = (attribute: string) =>
-  new Map(
-    all(`[data-${attribute}]`).map((element) => [
-      element.getAttribute(`data-${attribute}`)!,
-      element,
-    ]),
+function byData<Id extends string>(
+  attribute: string,
+  isId: (value: string) => value is Id,
+) {
+  return new Map(
+    all(`[data-${attribute}]`).map((element) => {
+      const value = element.getAttribute(`data-${attribute}`)!;
+      if (!isId(value))
+        throw new Error(`Universe: unknown data-${attribute} "${value}"`);
+      return [value, element] as const;
+    }),
   );
+}
 
 const universeSection = one('#universe');
 const workSection = one('#work');
 const careerSection = one('#experience');
 const outroSection = one('.outro');
 const workDetail = one('.work-detail');
-const worldDetails = byData('world-detail');
-const worldMarkers = byData('world-marker');
+const worldDetails = byData('world-detail', isWorldId);
+const worldMarkers = byData('world-marker', isWorldId);
 const worldStatus = one('[data-world-status]');
 const stepButtons = all('[data-step]');
 const stageStatus = one('[data-stage-status]');
-const stageDetails = byData('stage-detail');
-const stageButtons = byData('stage-select');
-const starMarkers = byData('star-marker');
+const stageDetails = byData('stage-detail', isStageId);
+const stageButtons = byData('stage-select', isStageId);
+const starMarkers = byData('star-marker', isStageId);
 const navLinks = all<HTMLAnchorElement>('[data-nav]');
 const scene = one<HTMLCanvasElement>('#scene');
 const returnButton = one('[data-return]');
@@ -94,13 +100,13 @@ function scheduleScroll() {
 window.addEventListener('scroll', scheduleScroll, { passive: true });
 window.addEventListener('resize', scheduleScroll, { passive: true });
 
-const worldHeading = (id: string) =>
+const worldHeading = (id: WorldId) =>
   worldDetails.get(id)?.querySelector<HTMLElement>('[data-world-heading]');
 
 const isShown = (element: HTMLElement | null | undefined) =>
   !!element?.isConnected && element.getClientRects().length > 0;
 
-function announceWorld(id: string | null) {
+function announceWorld(id: WorldId | null) {
   if (!id) {
     worldStatus.textContent = 'Full system. Select a world.';
     return;
@@ -111,7 +117,7 @@ function announceWorld(id: string | null) {
 
 let awaitingBack = false;
 
-function syncHistory(previous: string | null, next: string | null) {
+function syncHistory(previous: WorldId | null, next: WorldId | null) {
   if (awaitingBack) return;
   const pushed = history.state?.pushed === true;
   const mode = historyMode(previous, next, pushed);
@@ -147,7 +153,7 @@ interface WorldChange {
   focus?: boolean;
 }
 
-function showWorld(id: string, options: WorldChange = {}) {
+function showWorld(id: WorldId, options: WorldChange = {}) {
   const previous = selectedWorld();
   if (!worldDetails.has(id)) return;
   if (previous === id) {
@@ -188,8 +194,7 @@ function hideWorld(options: WorldChange = {}) {
   keepStageInView('atlas');
 }
 
-all('[data-world-select]').forEach((button) => {
-  const id = button.dataset.worldSelect!;
+byData('world-select', isWorldId).forEach((button, id) => {
   button.addEventListener('click', () => showWorld(id, { trigger: button }));
   button.addEventListener('pointerenter', () => setHover(id));
   button.addEventListener('pointerleave', () => setHover(null));
@@ -252,7 +257,7 @@ document.addEventListener('click', (event) => {
   target.focus({ preventScroll: true });
 });
 
-function openStage(id: string) {
+function openStage(id: StageId) {
   selectStage(id);
   const heading = stageDetails.get(id)?.querySelector('h3');
   const role = stageDetails.get(id)?.querySelector('[data-role]');
@@ -281,7 +286,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'ArrowLeft') openStage(adjacentStage(-1));
 });
 
-let renderedWorld: string | null = null;
+let renderedWorld: WorldId | null = null;
 
 function render() {
   root.dataset.zone = state.zone;

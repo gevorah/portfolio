@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { worldIds, type WorldId } from '@/data/worlds';
+
 import {
   looks,
   SUN_RADIUS,
@@ -42,15 +44,15 @@ export interface FrameContext {
   orbitTime: number;
   displayScale: number;
   recede: number;
-  focusId: string | null;
+  focusId: WorldId | null;
   focus: number;
-  hoverId: string | null;
+  hoverId: WorldId | null;
   faceDirection: THREE.Vector3;
   damp(rate: number): number;
 }
 
 export interface WorldBody {
-  id: string;
+  id: WorldId;
   group: THREE.Group;
   position: THREE.Vector3;
   radius: number;
@@ -89,14 +91,14 @@ export function orbitPosition(
 const shortestAngle = (angle: number) =>
   Math.atan2(Math.sin(angle), Math.cos(angle));
 
-const hoverTarget = (context: FrameContext, id: string) =>
+const hoverTarget = (context: FrameContext, id: WorldId) =>
   context.hoverId === id && context.focusId !== id ? 1 : 0;
 
-const recedeFor = (context: FrameContext, id: string) =>
+const recedeFor = (context: FrameContext, id: WorldId) =>
   context.focusId === id ? 0 : context.recede;
 
 function createPlanet(
-  id: string,
+  id: WorldId,
   look: PlanetLook,
   shared: SharedUniforms,
   geometry: SharedGeometry,
@@ -306,7 +308,7 @@ function createPlanet(
 }
 
 function createSignal(
-  id: string,
+  id: WorldId,
   look: SignalLook,
   shared: SharedUniforms,
 ): WorldBody {
@@ -411,11 +413,12 @@ export function createWorlds(
   geometry: SharedGeometry,
   textures: UmbralTextures,
 ) {
-  return Object.entries(looks).map(([id, look]) =>
-    look.type === 'planet'
+  return worldIds.map((id) => {
+    const look = looks[id];
+    return look.type === 'planet'
       ? createPlanet(id, look, shared, geometry, textures)
-      : createSignal(id, look, shared),
-  );
+      : createSignal(id, look, shared);
+  });
 }
 
 export function createSun(shared: SharedUniforms, geometry: SharedGeometry) {
