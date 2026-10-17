@@ -326,6 +326,18 @@ export function mountExperience() {
     { signal },
   );
 
+  const reveals = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.toggleAttribute('data-revealed', true);
+        reveals.unobserve(entry.target);
+      }),
+    { threshold: 0.2 },
+  );
+  all('[data-reveal]').forEach((element) => reveals.observe(element));
+  cleanup.push(() => reveals.disconnect());
+
   let renderedWorld: WorldId | null = null;
 
   function render() {

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import {
   countDrawCalls,
@@ -264,4 +264,125 @@ test('Work hands off to Experience without an empty sky between them', async ({
       `t=${progress}`,
     ).toBeGreaterThan(0.0015);
   }
+});
+
+test('the hero heading settles into one readable sentence', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const heading = page.getByRole('heading', { level: 1 });
+  await expect(heading).toHaveAccessibleName(
+    "Hi, I'm Jhon, a software engineer.",
+  );
+  await page.waitForTimeout(2500);
+  expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+  const ink = await page
+    .locator('.hero-role .ink')
+    .evaluate((element) => getComputedStyle(element));
+  expect(ink.backgroundImage).toBe('none');
+  expect(ink.color).toBe('rgb(192, 161, 255)');
+});
+
+test.describe('reduced motion in the hero', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('the hero is shown without an entrance animation', async ({ page }) => {
+    await page.goto('/');
+    expect(
+      await page.evaluate(
+        () =>
+          document
+            .getAnimations()
+            .filter((animation) =>
+              (animation.effect as KeyframeEffect).target?.closest(
+                '.hero-copy',
+              ),
+            ).length,
+      ),
+    ).toBe(0);
+  });
+});
+
+const INTRODUCTIONS = [
+  { id: 'about', body: '.about-copy', heading: 'Beyond the code.' },
+  { id: 'contact', body: '.contact-body', heading: "Let's talk." },
+] as const;
+
+const revealItems = (page: Page, body: string) =>
+  page.locator(body).evaluate((element) =>
+    [...element.querySelectorAll<HTMLElement>("[style*='--i']")].map((item) => {
+      const style = getComputedStyle(item);
+      return {
+        text: item.textContent!.trim(),
+        opacity: Number(style.opacity),
+        moved: style.translate !== 'none' && style.translate !== '0px',
+        animations: item.getAnimations().length,
+      };
+    }),
+  );
+
+async function expectSettledIntroduction(
+  page: Page,
+  { body, heading }: (typeof INTRODUCTIONS)[number],
+) {
+  const items = await revealItems(page, body);
+  expect(items.length).toBeGreaterThan(3);
+  for (const item of items) {
+    expect(item, item.text).toMatchObject({
+      opacity: 1,
+      moved: false,
+      animations: 0,
+    });
+  }
+  const title = page.getByRole('heading', { level: 2, name: heading });
+  await expect(title).toBeVisible();
+  const box = (await title.boundingBox())!;
+  const topmost = await page.evaluate(
+    ([x, y]) => document.elementFromPoint(x, y)?.closest('h2')?.textContent,
+    [box.x + box.width / 2, box.y + box.height / 2],
+  );
+  expect(topmost?.replace(/\s+/g, ' ').trim()).toBe(heading);
+}
+
+for (const introduction of INTRODUCTIONS) {
+  test(`the ${introduction.id} introduction enters once and then stays readable`, async ({
+    page,
+  }) => {
+    await open(page);
+    await expect(
+      page.getByRole('heading', { level: 2, name: introduction.heading }),
+    ).toHaveCount(1);
+    const waiting = await revealItems(page, introduction.body);
+    expect(waiting.every((item) => item.opacity === 0)).toBe(true);
+
+    await scrollTo(page, introduction.id);
+    const entering = await revealItems(page, introduction.body);
+    expect(entering.every((item) => item.animations === 1)).toBe(true);
+    expect(entering.some((item) => item.opacity < 1)).toBe(true);
+    await page
+      .locator(introduction.body)
+      .evaluate((element) =>
+        Promise.all(
+          element.getAnimations({ subtree: true }).map((item) => item.finished),
+        ),
+      );
+    await expectSettledIntroduction(page, introduction);
+
+    await scrollTo(page, 'universe');
+    await scrollTo(page, introduction.id);
+    await expectSettledIntroduction(page, introduction);
+  });
+}
+
+test.describe('reduced motion in About and Contact', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  for (const introduction of INTRODUCTIONS)
+    test(`the ${introduction.id} introduction is shown without an entrance`, async ({
+      page,
+    }) => {
+      await open(page);
+      await scrollTo(page, introduction.id);
+      await expectSettledIntroduction(page, introduction);
+    });
 });

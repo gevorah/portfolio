@@ -17,14 +17,14 @@ const symbols: Record<(typeof profile.contact)[number]['label'], string> = {
   aria-labelledby="about-title"
   tabindex="-1"
 >
-  <div class="about-copy">
+  <div class="about-copy" data-reveal>
     <h2 class="about-title" id="about-title">
-      Beyond <span>the code.</span>
+      <span style="--i:1">Beyond</span> <span style="--i:2">the code.</span>
     </h2>
-    <p class="about-text">
+    <p class="about-text" style="--i:3">
       {profile.about.lead} <strong>{profile.about.emphasis}</strong>
     </p>
-    <dl class="about-details">
+    <dl class="about-details" style="--i:4">
       <div>
         <dt>Education</dt>
         <dd>
@@ -54,17 +54,17 @@ const symbols: Record<(typeof profile.contact)[number]['label'], string> = {
   <div class="stage-slot nebula" aria-hidden="true">
     <div data-frame="contact"></div>
   </div>
-  <div class="contact-body">
-    <h2 class="contact-title" id="contact-title">
+  <div class="contact-body" data-reveal>
+    <h2 class="contact-title" id="contact-title" style="--i:1">
       Let's talk.
     </h2>
-    <p class="contact-lede">
+    <p class="contact-lede" style="--i:2">
       Have a project, an idea, or something you'd like to discuss? I'd love to
       hear from you.
     </p>
     <ul class="contact-list">
-      {profile.contact.map((channel) => (
-        <li>
+      {profile.contact.map((channel, index) => (
+        <li style={`--i:${3 + index}`}>
           <a
             class="contact-row"
             href={channel.href}

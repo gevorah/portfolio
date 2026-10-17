@@ -10,8 +10,18 @@ import { profile } from '@/data/profile';
 >
   <div class="hero-copy">
     <h1 class="hero-title" id="hero-title">
-      <span class="hero-greeting">Hi, I'm {profile.name},</span>
-      <span class="hero-role">a {profile.title.toLowerCase()}.</span>
+      <span class="hero-greeting">
+        {`Hi, I'm ${profile.name},`.split(' ').map((word, index) => (
+          <>
+            <span class="word" style={`--w:${index}`}>
+              <span>{word}</span>
+            </span>{' '}
+          </>
+        ))}
+      </span>
+      <span class="hero-role">
+        <span class="ink">a {profile.title.toLowerCase()}.</span>
+      </span>
     </h1>
     <p class="prose hero-summary">{profile.summary}</p>
     <div class="hero-actions">
