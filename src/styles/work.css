@@ -1,10 +1,4 @@
 @layer components {
-  .work,
-  .career {
-    display: flex;
-    flex-direction: column;
-  }
-
   .work .stage-slot {
     height: 56svh;
     min-height: 18rem;
@@ -18,13 +12,6 @@
   .work [data-frame='focus'] {
     inset: 6% 8%;
     --fit: 0.82;
-  }
-
-  .work-content,
-  .career-content {
-    position: relative;
-    z-index: 3;
-    width: 100%;
   }
 
   .js .work-content {

@@ -24,8 +24,6 @@
     --control: 2.75rem;
     --work: 0;
     --career: 0;
-    --about: 0;
-    --contact: 0;
     color-scheme: dark;
   }
 
@@ -76,15 +74,6 @@
       animation-delay: 0s !important;
       transition-duration: 0.01ms !important;
     }
-  }
-
-  .display {
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
-    font-weight: 620;
-    letter-spacing: -0.06em;
-    line-height: 0.98;
-    text-wrap: balance;
-    overflow-wrap: break-word;
   }
 
   .section-title {

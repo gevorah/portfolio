@@ -1,4 +1,17 @@
 @layer components {
+  .work,
+  .career {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .work-content,
+  .career-content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+  }
+
   .work-detail::before,
   .career-content::before {
     content: '';

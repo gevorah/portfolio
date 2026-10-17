@@ -91,8 +91,6 @@ export function mountExperience() {
     setScroll(timeline.zone, timeline.weights);
     root.style.setProperty('--work', timeline.weights.work.toFixed(3));
     root.style.setProperty('--career', timeline.weights.career.toFixed(3));
-    root.style.setProperty('--about', timeline.weights.about.toFixed(3));
-    root.style.setProperty('--contact', timeline.weights.contact.toFixed(3));
 
     root.toggleAttribute(
       'data-outro',
