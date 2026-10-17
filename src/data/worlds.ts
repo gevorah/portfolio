@@ -37,7 +37,7 @@ export const worlds: World[] = [
     stage: 'world',
   },
   {
-    id: 'viajes',
+    id: 'travel',
     name: 'Plataforma de viajes',
     tagline: 'Historias de aventura, contadas por quienes las viven.',
     kind: 'Trabajo profesional',
@@ -52,7 +52,7 @@ export const worlds: World[] = [
     stage: 'world',
   },
   {
-    id: 'finanzas',
+    id: 'finance',
     name: 'Finanzas personales',
     tagline: 'Un proyecto propio que apenas toma forma.',
     kind: 'Proyecto personal',
@@ -66,7 +66,7 @@ export const worlds: World[] = [
     stage: 'world',
   },
   {
-    id: 'duelos',
+    id: 'card-battler',
     name: 'Card battler táctico',
     tagline: 'Duelos decididos por sus personajes.',
     kind: 'Exploración futura',
@@ -79,7 +79,7 @@ export const worlds: World[] = [
     stage: 'signal',
   },
   {
-    id: 'asistente',
+    id: 'code-assistant',
     name: 'Asistente de código',
     tagline: 'Un asistente que reacciona a eventos.',
     kind: 'Exploración futura',

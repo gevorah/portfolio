@@ -2,7 +2,12 @@
 import { profile } from '@/data/profile';
 ---
 
-<section class="screen hero" id="universo" aria-labelledby="hero-title">
+<section
+  class="screen hero"
+  id="universe"
+  aria-labelledby="hero-title"
+  tabindex="-1"
+>
   <div class="hero-copy">
     <p class="hero-identity">
       <strong>{profile.name}</strong>, {profile.title.toLowerCase()}
@@ -17,10 +22,10 @@ import { profile } from '@/data/profile';
     </h1>
     <p class="prose">{profile.summary}</p>
     <div class="hero-actions">
-      <a class="button" href="#trabajo">
+      <a class="button" href="#work">
         Explorar mi trabajo
       </a>
-      <a class="link" href="#trayectoria">
+      <a class="link" href="#experience">
         Ver mi trayectoria
       </a>
     </div>

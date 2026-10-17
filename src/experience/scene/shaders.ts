@@ -82,6 +82,7 @@ uniform vec3 uSunPos;
 uniform vec3 uAtmosphere;
 uniform float uAtmosphereStrength;
 uniform float uRecede;
+uniform float uVeil;
 uniform float uHover;
 uniform float uTime;
 uniform vec3 uSeed;
@@ -228,7 +229,7 @@ void main() {
   color += uAtmosphere * fresnel * (uAtmosphereStrength * (0.12 + 0.88 * lit) + uHover * 0.55);
 
   color = 1.0 - exp(-color * 1.25);
-  color *= mix(1.0, 0.36, uRecede);
+  color *= mix(1.0, 0.36, uRecede) * (1.0 - 0.82 * uVeil);
   gl_FragColor = vec4(color, 1.0);
   #include <colorspace_fragment>
 }
@@ -278,6 +279,7 @@ uniform vec2 uRadii;
 uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform float uRecede;
+uniform float uVeil;
 
 varying vec3 vPosW;
 varying vec3 vLocal;
@@ -298,6 +300,7 @@ void main() {
 
   float alpha = density * edges * 0.82;
   color *= (0.12 + 0.88 * shadow) * mix(1.0, 0.5, uRecede);
+  alpha *= 1.0 - 0.85 * uVeil;
   gl_FragColor = vec4(color, alpha);
   #include <colorspace_fragment>
 }
@@ -357,15 +360,20 @@ export const pointsFragment = `
 uniform float uOpacity;
 uniform float uCore;
 uniform float uGlow;
+uniform float uSpikes;
 
 varying vec3 vColor;
 varying float vPhase;
 
 void main() {
-  float d = length(gl_PointCoord - 0.5) * 2.0;
+  vec2 p = (gl_PointCoord - 0.5) * 2.0;
+  float d = length(p);
   float core = 1.0 - smoothstep(uCore * 0.55, uCore, d);
   float glow = pow(max(1.0 - d, 0.0), 2.6) * uGlow;
-  gl_FragColor = vec4(vColor * min(core + glow, 1.0) * uOpacity * vPhase, 1.0);
+  vec2 a = abs(p);
+  float spikes = (exp(-a.y * 26.0) * pow(max(1.0 - a.x, 0.0), 3.0)
+    + exp(-a.x * 26.0) * pow(max(1.0 - a.y, 0.0), 3.0)) * uSpikes * vPhase;
+  gl_FragColor = vec4(vColor * min(core + glow + spikes, 1.0) * uOpacity * vPhase, 1.0);
   #include <colorspace_fragment>
 }
 `;

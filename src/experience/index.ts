@@ -1,11 +1,16 @@
+import { worldIds } from '@/data/worlds';
+
+import { historyMode, urlForWorld, WORLD_PARAM, worldFromUrl } from './history';
 import {
+  adjacentWorld,
   focusWorld,
+  invalidate,
   returnToSystem,
+  selectedWorld,
   selectStage,
   setHover,
   setScroll,
   state,
-  stepWorld,
   subscribe,
 } from './store';
 import { resolveTimeline, sectionProgress } from './timeline';
@@ -24,17 +29,21 @@ const byData = (attribute: string) =>
     ]),
   );
 
-const workSection = one('#trabajo');
-const careerSection = one('#trayectoria');
-const outroSection = one('#sobre-mi');
+const workSection = one('#work');
+const careerSection = one('#experience');
+const outroSection = one('#about');
+const workContent = one('.work-content');
 const worldDetails = byData('world-detail');
 const worldMarkers = byData('world-marker');
+const worldStatus = one('[data-world-status]');
+const stepButtons = all('[data-step]');
 const stageDetails = byData('stage-detail');
 const stageButtons = byData('stage-select');
 const starMarkers = byData('star-marker');
 const navLinks = all<HTMLAnchorElement>('[data-nav]');
 
-const WORLD_PARAM = 'mundo';
+const scrollBehavior = (): ScrollBehavior =>
+  state.motion.transitions ? 'smooth' : 'auto';
 
 function readScroll() {
   const viewport = window.innerHeight;
@@ -49,17 +58,13 @@ function readScroll() {
   root.style.setProperty('--career', timeline.weights.career.toFixed(3));
   root.style.setProperty('--outro', timeline.outro.toFixed(3));
 
-  if (state.focused && timeline.weights.work > 0.6) visitedFocus = true;
-  if (state.focused && visitedFocus && timeline.weights.work < 0.3)
-    returnToSystem();
-
   const current = timeline.outro > 0.5 ? 'outro' : timeline.zone;
-  navLinks.forEach((link) =>
-    link.setAttribute('aria-current', String(link.dataset.nav === current)),
-  );
+  navLinks.forEach((link) => {
+    if (link.dataset.nav === current) link.setAttribute('aria-current', 'true');
+    else link.removeAttribute('aria-current');
+  });
 }
 
-let visitedFocus = false;
 let scrollScheduled = false;
 function scheduleScroll() {
   if (scrollScheduled) return;
@@ -72,32 +77,103 @@ function scheduleScroll() {
 window.addEventListener('scroll', scheduleScroll, { passive: true });
 window.addEventListener('resize', scheduleScroll, { passive: true });
 
-const scrollBehavior = (): ScrollBehavior =>
-  state.reducedMotion ? 'auto' : 'smooth';
+const worldHeading = (id: string) =>
+  worldDetails.get(id)?.querySelector<HTMLElement>('[data-world-heading]');
 
-function openWorld(id: string, { moveFocus = false } = {}) {
-  const arriving = !state.focused;
-  if (arriving) visitedFocus = state.weights.work > 0.6;
-  focusWorld(id);
-  const stageTop = one('[data-frame="focus"]').getBoundingClientRect().top;
-  if (state.zone !== 'work' || stageTop < 0)
-    workSection.scrollIntoView({ behavior: scrollBehavior() });
-  const detail = worldDetails.get(id);
-  detail?.style.setProperty(
-    '--reveal-delay',
-    arriving && !state.reducedMotion ? '0.75s' : '0s',
-  );
-  if (moveFocus) detail?.focus({ preventScroll: true });
+const isShown = (element: HTMLElement | null | undefined) =>
+  !!element?.isConnected && element.getClientRects().length > 0;
+
+function announceWorld(id: string | null) {
+  if (!id) {
+    worldStatus.textContent = 'Full system. Select a world.';
+    return;
+  }
+  const position = worldIds.indexOf(id) + 1;
+  worldStatus.textContent = `${worldHeading(id)?.textContent?.trim()}. World ${position} of ${worldIds.length}.`;
 }
 
-let lastWorldTrigger: HTMLElement | null = null;
+let awaitingBack = false;
+
+function syncHistory(previous: string | null, next: string | null) {
+  if (awaitingBack) return;
+  const pushed = history.state?.pushed === true;
+  const mode = historyMode(previous, next, pushed);
+  const url = urlForWorld(window.location.href, next);
+  if (mode === 'push') {
+    history.scrollRestoration = 'manual';
+    history.pushState({ world: next, pushed: true }, '', url);
+  } else if (mode === 'replace') {
+    history.replaceState(
+      { world: next, pushed: pushed && next !== null },
+      '',
+      url,
+    );
+  } else if (mode === 'back') {
+    awaitingBack = true;
+    history.back();
+  }
+}
+
+function keepStageInView(frame: 'focus' | 'atlas') {
+  const stage = one(`[data-frame="${frame}"]`).getBoundingClientRect();
+  const hidden =
+    stage.top < -stage.height * 0.25 || stage.top > window.innerHeight * 0.75;
+  if (state.zone !== 'work' || hidden)
+    workSection.scrollIntoView({ behavior: scrollBehavior() });
+}
+
+let worldTrigger: HTMLElement | null = null;
+
+interface WorldChange {
+  trigger?: HTMLElement;
+  history?: boolean;
+  focus?: boolean;
+}
+
+function showWorld(id: string, options: WorldChange = {}) {
+  const previous = selectedWorld();
+  if (!worldDetails.has(id)) return;
+  if (previous === id) {
+    keepStageInView('focus');
+    return;
+  }
+
+  const active = document.activeElement as HTMLElement | null;
+  const keepsFocus = previous !== null && stepButtons.includes(active!);
+  if (previous === null) worldTrigger = options.trigger ?? null;
+
+  worldDetails
+    .get(id)
+    ?.style.setProperty(
+      '--reveal-delay',
+      previous === null && state.motion.transitions ? '0.75s' : '0s',
+    );
+  focusWorld(id);
+  if (options.history !== false) syncHistory(previous, id);
+  keepStageInView('focus');
+
+  if (options.focus === false) return;
+  if (keepsFocus) announceWorld(id);
+  else worldHeading(id)?.focus({ preventScroll: true });
+}
+
+function hideWorld(options: WorldChange = {}) {
+  const previous = selectedWorld();
+  if (previous === null) return;
+  returnToSystem();
+  if (options.history !== false) syncHistory(previous, null);
+  announceWorld(null);
+
+  if (options.focus === false) return;
+  const fallback = worldMarkers.get(previous);
+  const target = [worldTrigger, fallback, workSection].find(isShown);
+  target?.focus({ preventScroll: true });
+  keepStageInView('atlas');
+}
 
 all('[data-world-select]').forEach((button) => {
   const id = button.dataset.worldSelect!;
-  button.addEventListener('click', () => {
-    lastWorldTrigger = button;
-    openWorld(id, { moveFocus: true });
-  });
+  button.addEventListener('click', () => showWorld(id, { trigger: button }));
   button.addEventListener('pointerenter', () => setHover(id));
   button.addEventListener('pointerleave', () => setHover(null));
   button.addEventListener('focus', () => setHover(id));
@@ -105,39 +181,57 @@ all('[data-world-select]').forEach((button) => {
 });
 
 worldMarkers.forEach((marker, id) => {
-  marker.addEventListener('click', () => openWorld(id));
+  marker.addEventListener('click', () => showWorld(id, { trigger: marker }));
   marker.addEventListener('pointerenter', () => setHover(id));
   marker.addEventListener('pointerleave', () => setHover(null));
+  marker.addEventListener('focus', () => setHover(id));
+  marker.addEventListener('blur', () => setHover(null));
 });
 
-function leaveWorld() {
-  returnToSystem();
-  lastWorldTrigger?.focus({ preventScroll: true });
-  const stage = one('[data-frame="atlas"]').getBoundingClientRect();
-  if (stage.top < -stage.height * 0.25)
-    workSection.scrollIntoView({ behavior: scrollBehavior() });
+function stepWorld(direction: 1 | -1) {
+  const next = adjacentWorld(direction);
+  if (next) showWorld(next);
 }
 
-one('[data-return]').addEventListener('click', leaveWorld);
-all('[data-step]').forEach((button) =>
-  button.addEventListener('click', () => {
-    stepWorld(button.dataset.step === '1' ? 1 : -1);
-    worldDetails
-      .get(state.focusId ?? '')
-      ?.style.setProperty('--reveal-delay', '0s');
-  }),
+one('[data-return]').addEventListener('click', () => hideWorld());
+stepButtons.forEach((button) =>
+  button.addEventListener('click', () =>
+    stepWorld(button.dataset.step === '1' ? 1 : -1),
+  ),
 );
 
 document.addEventListener('keydown', (event) => {
-  if (!state.focused || state.zone !== 'work') return;
-  if (event.key === 'Escape') {
-    leaveWorld();
-    return;
-  }
+  if (selectedWorld() === null || state.zone !== 'work') return;
   const target = event.target as HTMLElement;
-  if (target.closest('input, textarea, select, [contenteditable]')) return;
+  if (target !== document.body && !workSection.contains(target)) return;
+  if (event.key === 'Escape') hideWorld();
   if (event.key === 'ArrowRight') stepWorld(1);
   if (event.key === 'ArrowLeft') stepWorld(-1);
+});
+
+window.addEventListener('popstate', () => {
+  if (awaitingBack) {
+    awaitingBack = false;
+    const reopened = selectedWorld();
+    if (reopened) syncHistory(null, reopened);
+    return;
+  }
+  const id = worldFromUrl(window.location.href, worldIds);
+  if (id) showWorld(id, { history: false });
+  else hideWorld({ history: false });
+});
+
+document.addEventListener('click', (event) => {
+  if (event.defaultPrevented || event.metaKey || event.ctrlKey) return;
+  const link = (event.target as Element).closest<HTMLAnchorElement>(
+    'a[href^="#"]',
+  );
+  const target = link && document.getElementById(link.hash.slice(1));
+  if (!target) return;
+  event.preventDefault();
+  if (target === workSection) hideWorld({ focus: false });
+  target.scrollIntoView({ behavior: scrollBehavior() });
+  target.focus({ preventScroll: true });
 });
 
 function openStage(id: string) {
@@ -157,9 +251,9 @@ let renderedWorld: string | null = null;
 function render() {
   root.dataset.zone = state.zone;
 
-  const selected = state.focused ? state.focusId : null;
-  if (selected !== renderedWorld && state.reducedMotion) {
-    one('#universe').animate([{ opacity: 0 }, {}], {
+  const selected = selectedWorld();
+  if (selected !== renderedWorld && !state.motion.transitions) {
+    one('#scene').animate([{ opacity: 0 }, {}], {
       duration: 260,
       easing: 'ease-out',
     });
@@ -181,24 +275,19 @@ function render() {
       control.setAttribute('aria-pressed', String(id === state.stageId)),
     ),
   );
-
-  const url = new URL(window.location.href);
-  if (selected) url.searchParams.set(WORLD_PARAM, selected);
-  else url.searchParams.delete(WORLD_PARAM);
-  if (url.href !== window.location.href) history.replaceState(null, '', url);
 }
 subscribe(render);
-
-const linkedWorld = new URL(window.location.href).searchParams.get(WORLD_PARAM);
 
 readScroll();
 render();
 
-if (linkedWorld && worldDetails.has(linkedWorld)) {
+const linkedWorld = worldFromUrl(window.location.href, worldIds);
+if (linkedWorld) {
   const openLinkedWorld = () => {
     workSection.scrollIntoView({ behavior: 'instant' });
     readScroll();
-    openWorld(linkedWorld);
+    showWorld(linkedWorld, { history: false, focus: false });
+    history.replaceState({ world: linkedWorld, pushed: false }, '');
   };
   if (document.readyState === 'complete') openLinkedWorld();
   else
@@ -207,10 +296,12 @@ if (linkedWorld && worldDetails.has(linkedWorld)) {
       () => requestAnimationFrame(openLinkedWorld),
       { once: true },
     );
+} else if (new URL(window.location.href).searchParams.has(WORLD_PARAM)) {
+  history.replaceState(null, '', urlForWorld(window.location.href, null));
 }
 
 async function startUniverse() {
-  const canvas = one<HTMLCanvasElement>('#universe');
+  const canvas = one<HTMLCanvasElement>('#scene');
   try {
     const { createUniverse } = await import('./scene/universe');
     const universe = await createUniverse({
@@ -221,10 +312,12 @@ async function startUniverse() {
         focus: one('[data-frame="focus"]'),
         career: one('[data-frame="career"]'),
       },
+      protect: workContent,
       worldMarkers,
       starMarkers,
     });
     canvas.toggleAttribute('data-ready', true);
+    invalidate();
     if (
       import.meta.env.DEV ||
       new URLSearchParams(location.search).has('stats')
@@ -234,7 +327,7 @@ async function startUniverse() {
     import.meta.hot?.dispose(() => universe.dispose());
   } catch (error) {
     root.classList.add('no-webgl');
-    console.warn('Small Worlds: no se pudo iniciar la escena 3D.', error);
+    console.warn('Small Worlds: the 3D scene could not start.', error);
   }
 }
 startUniverse();

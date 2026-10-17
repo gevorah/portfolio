@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { defaultStageId } from '@/data/career';
 import { worldIds } from '@/data/worlds';
 
+import { motionPolicy, type MotionPolicy } from './motion';
 import type { Zone, ZoneWeights } from './timeline';
 
 export interface ExperienceState {
@@ -16,7 +17,7 @@ export interface ExperienceState {
   recede: number;
   hoverId: string | null;
   stageId: string;
-  reducedMotion: boolean;
+  motion: MotionPolicy;
 }
 
 type Listener = (state: ExperienceState) => void;
@@ -34,48 +35,73 @@ export const state: ExperienceState = {
   recede: 0,
   hoverId: null,
   stageId: defaultStageId,
-  reducedMotion: motionQuery.matches,
+  motion: motionPolicy(motionQuery.matches),
 };
 
 const listeners = new Set<Listener>();
+const renderRequests = new Set<() => void>();
 
 export function subscribe(listener: Listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
-const notify = () => listeners.forEach((listener) => listener(state));
+export function onInvalidate(request: () => void) {
+  renderRequests.add(request);
+  return () => renderRequests.delete(request);
+}
 
-motionQuery.addEventListener('change', (event) => {
-  state.reducedMotion = event.matches;
-  notify();
-});
+export const invalidate = () => renderRequests.forEach((request) => request());
+
+function notify() {
+  listeners.forEach((listener) => listener(state));
+  invalidate();
+}
 
 const FOCUS_SCALARS = ['focus', 'focusShift', 'recede'] as const;
 
-function animateFocus(target: 0 | 1) {
+function settleFocus(target: 0 | 1) {
   gsap.killTweensOf(state, FOCUS_SCALARS.join(','));
-  if (state.reducedMotion) {
-    FOCUS_SCALARS.forEach((key) => (state[key] = target));
-    if (target === 0) clearFocus();
+  FOCUS_SCALARS.forEach((key) => (state[key] = target));
+  if (target === 0) clearFocus();
+}
+
+function animateFocus(target: 0 | 1) {
+  if (!state.motion.transitions) {
+    settleFocus(target);
     return;
   }
+  gsap.killTweensOf(state, FOCUS_SCALARS.join(','));
+  const onUpdate = invalidate;
   if (target === 1) {
-    gsap.to(state, { focus: 1, duration: 1.7, ease: 'power3.inOut' });
+    gsap.to(state, { focus: 1, duration: 1.7, ease: 'power3.inOut', onUpdate });
     gsap.to(state, {
       focusShift: 1,
       duration: 1.5,
       delay: 0.12,
       ease: 'power2.inOut',
+      onUpdate,
     });
-    gsap.to(state, { recede: 1, duration: 1.1, delay: 0.2, ease: 'sine.out' });
+    gsap.to(state, {
+      recede: 1,
+      duration: 1.1,
+      delay: 0.2,
+      ease: 'sine.out',
+      onUpdate,
+    });
   } else {
-    gsap.to(state, { recede: 0, duration: 1.2, ease: 'sine.inOut' });
-    gsap.to(state, { focusShift: 0, duration: 1.3, ease: 'power2.inOut' });
+    gsap.to(state, { recede: 0, duration: 1.2, ease: 'sine.inOut', onUpdate });
+    gsap.to(state, {
+      focusShift: 0,
+      duration: 1.3,
+      ease: 'power2.inOut',
+      onUpdate,
+    });
     gsap.to(state, {
       focus: 0,
       duration: 1.45,
       ease: 'power3.inOut',
+      onUpdate,
       onComplete: clearFocus,
     });
   }
@@ -86,6 +112,14 @@ function clearFocus() {
   state.focusId = null;
   notify();
 }
+
+motionQuery.addEventListener('change', (event) => {
+  state.motion = motionPolicy(event.matches);
+  if (!state.motion.transitions) settleFocus(state.focused ? 1 : 0);
+  notify();
+});
+
+export const selectedWorld = () => (state.focused ? state.focusId : null);
 
 export function focusWorld(id: string) {
   if (!worldIds.includes(id)) return;
@@ -103,14 +137,16 @@ export function returnToSystem() {
   notify();
 }
 
-export function stepWorld(direction: 1 | -1) {
+export function adjacentWorld(direction: 1 | -1) {
   const index = worldIds.indexOf(state.focusId ?? '');
-  if (index < 0) return;
-  focusWorld(worldIds[(index + direction + worldIds.length) % worldIds.length]);
+  if (index < 0) return null;
+  return worldIds[(index + direction + worldIds.length) % worldIds.length];
 }
 
 export function setHover(id: string | null) {
+  if (state.hoverId === id) return;
   state.hoverId = id;
+  invalidate();
 }
 
 export function selectStage(id: string) {
@@ -122,7 +158,10 @@ export function selectStage(id: string) {
 export function setScroll(zone: Zone, weights: ZoneWeights, outro: number) {
   state.weights = weights;
   state.outro = outro;
-  if (zone === state.zone) return;
-  state.zone = zone;
-  notify();
+  if (zone !== state.zone) {
+    state.zone = zone;
+    notify();
+  } else {
+    invalidate();
+  }
 }

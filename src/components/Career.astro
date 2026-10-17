@@ -8,7 +8,12 @@ const years = (period: string) =>
     .join(' – ');
 ---
 
-<section class="screen career" id="trayectoria" aria-labelledby="career-title">
+<section
+  class="screen career"
+  id="experience"
+  aria-labelledby="career-title"
+  tabindex="-1"
+>
   <div class="stage-slot" aria-hidden="true">
     <div data-frame="career"></div>
   </div>
@@ -64,7 +69,7 @@ const years = (period: string) =>
         class="marker star-marker"
         tabindex="-1"
         data-star-marker={stage.id}
-        data-label={constellation[stage.id]?.label}
+        data-prefer={constellation[stage.id]?.label}
         aria-pressed={stage.id === defaultStageId ? 'true' : 'false'}
         data-offstage
       >

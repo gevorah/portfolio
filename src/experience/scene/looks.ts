@@ -58,7 +58,7 @@ export const looks: Record<string, WorldLook> = {
     feature: [0.92, 0.3, -0.24],
     frameRadius: 1.12,
   },
-  viajes: {
+  travel: {
     type: 'planet',
     surface: 'terra',
     radius: 1.08,
@@ -71,7 +71,7 @@ export const looks: Record<string, WorldLook> = {
     palette: ['#141d38', '#2c7c84', '#d7ae82', '#7d4640'],
     frameRadius: 1.12,
   },
-  finanzas: {
+  finance: {
     type: 'planet',
     surface: 'giant',
     radius: 1.22,
@@ -90,14 +90,14 @@ export const looks: Record<string, WorldLook> = {
     frameRadius: 2.0,
     viewLift: 0.62,
   },
-  duelos: {
+  'card-battler': {
     type: 'signal',
     radius: 0.55,
     orbit: { radius: 18.6, angle: 218, period: 900, inclination: 0.06 },
     color: '#a583f2',
     frameRadius: 1.9,
   },
-  asistente: {
+  'code-assistant': {
     type: 'signal',
     radius: 0.5,
     orbit: { radius: 18.6, angle: -82, period: 900, inclination: 0.06 },
@@ -107,6 +107,11 @@ export const looks: Record<string, WorldLook> = {
 };
 
 export const SYSTEM_RADIUS = { hero: 16.4, atlas: 19.6 };
+
+export const SYSTEM_VIEWS = {
+  hero: { elevation: 21, azimuth: 10, roll: 0, aspect: 0.55 },
+  atlas: { elevation: 50, azimuth: -22, roll: 0, aspect: 0.82 },
+};
 
 export interface ConstellationStar {
   position: [number, number, number];

@@ -2,10 +2,32 @@
 import { worlds } from '@/data/worlds';
 ---
 
-<section class="screen work" id="trabajo" aria-labelledby="work-title">
+<section
+  class="screen work"
+  id="work"
+  aria-labelledby="work-title"
+  tabindex="-1"
+>
   <h2 class="sr-only" id="work-title">
     Trabajo
   </h2>
+  <div class="markers">
+    {worlds.map((world) => (
+      <button
+        type="button"
+        class="marker world-marker"
+        aria-label={`Explorar ${world.name}`}
+        data-world-marker={world.id}
+        data-stage={world.stage}
+        data-offstage
+      >
+        <span class="marker-label" aria-hidden="true">
+          {world.name}
+        </span>
+      </button>
+    ))}
+  </div>
+
   <div class="stage-slot" aria-hidden="true">
     <div data-frame="atlas"></div>
     <div data-frame="focus"></div>
@@ -32,6 +54,8 @@ import { worlds } from '@/data/worlds';
         ))}
       </ul>
     </div>
+
+    <p class="sr-only" role="status" data-world-status></p>
 
     <div class="work-detail">
       <div class="detail-controls">
@@ -85,10 +109,9 @@ import { worlds } from '@/data/worlds';
       {worlds.map((world) => (
         <article
           class="world-detail"
-          id={`mundo-${world.id}`}
+          id={`world-${world.id}`}
           data-world-detail={world.id}
-          aria-labelledby={`mundo-${world.id}-title`}
-          tabindex="-1"
+          aria-labelledby={`world-${world.id}-title`}
         >
           <p class="world-meta" style="--i:0">
             <span>
@@ -98,7 +121,9 @@ import { worlds } from '@/data/worlds';
           </p>
           <h3
             class:list={['display', { 'is-long': world.name.length > 12 }]}
-            id={`mundo-${world.id}-title`}
+            id={`world-${world.id}-title`}
+            data-world-heading
+            tabindex="-1"
             style="--i:1"
           >
             {world.name}
@@ -148,20 +173,5 @@ import { worlds } from '@/data/worlds';
         </article>
       ))}
     </div>
-  </div>
-
-  <div class="markers" aria-hidden="true">
-    {worlds.map((world) => (
-      <button
-        type="button"
-        class="marker world-marker"
-        tabindex="-1"
-        data-world-marker={world.id}
-        data-stage={world.stage}
-        data-offstage
-      >
-        <span class="marker-label">{world.name}</span>
-      </button>
-    ))}
   </div>
 </section>

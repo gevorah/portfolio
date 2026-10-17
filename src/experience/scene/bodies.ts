@@ -26,6 +26,11 @@ export interface SharedUniforms {
   uSunPos: THREE.IUniform<THREE.Vector3>;
 }
 
+export interface SharedGeometry {
+  sphere: THREE.SphereGeometry;
+  lowSphere: THREE.SphereGeometry;
+}
+
 export interface UmbralTextures {
   albedo: THREE.Texture;
   data: THREE.Texture;
@@ -33,6 +38,7 @@ export interface UmbralTextures {
 
 export interface FrameContext {
   dt: number;
+  ambientDt: number;
   orbitTime: number;
   displayScale: number;
   recede: number;
@@ -40,6 +46,7 @@ export interface FrameContext {
   focus: number;
   hoverId: string | null;
   faceDirection: THREE.Vector3;
+  damp(rate: number): number;
 }
 
 export interface WorldBody {
@@ -51,14 +58,17 @@ export interface WorldBody {
   labelRadius: number;
   viewLift: number;
   orbit: OrbitLook;
+  veil: number;
   update(context: FrameContext): void;
 }
 
 const color = (hex: string) => new THREE.Color(hex);
 const TAU = Math.PI * 2;
 
-const sphereGeometry = new THREE.SphereGeometry(1, 96, 64);
-const lowSphereGeometry = new THREE.SphereGeometry(1, 32, 24);
+export const createSharedGeometry = (): SharedGeometry => ({
+  sphere: new THREE.SphereGeometry(1, 96, 64),
+  lowSphere: new THREE.SphereGeometry(1, 32, 24),
+});
 
 export function orbitPosition(
   orbit: OrbitLook,
@@ -78,18 +88,17 @@ export function orbitPosition(
 const shortestAngle = (angle: number) =>
   Math.atan2(Math.sin(angle), Math.cos(angle));
 
-function hoverTarget(context: FrameContext, id: string) {
-  return context.hoverId === id && context.focusId !== id ? 1 : 0;
-}
+const hoverTarget = (context: FrameContext, id: string) =>
+  context.hoverId === id && context.focusId !== id ? 1 : 0;
 
-function recedeFor(context: FrameContext, id: string) {
-  return context.focusId === id ? 0 : context.recede;
-}
+const recedeFor = (context: FrameContext, id: string) =>
+  context.focusId === id ? 0 : context.recede;
 
 function createPlanet(
   id: string,
   look: PlanetLook,
   shared: SharedUniforms,
+  geometry: SharedGeometry,
   textures: UmbralTextures,
 ): WorldBody {
   const group = new THREE.Group();
@@ -104,6 +113,7 @@ function createPlanet(
     uAtmosphere: { value: color(look.atmosphere) },
     uAtmosphereStrength: { value: look.atmosphereStrength },
     uRecede: { value: 0 },
+    uVeil: { value: 0 },
     uHover: { value: 0 },
     uSeed: {
       value: new THREE.Vector3(3.1, 7.7, 1.9).multiplyScalar(look.radius * 4),
@@ -119,7 +129,7 @@ function createPlanet(
     uCenter: { value: new THREE.Vector3() },
   };
   const surface = new THREE.Mesh(
-    sphereGeometry,
+    geometry.sphere,
     new THREE.ShaderMaterial({
       vertexShader: bodyVertex,
       fragmentShader: planetFragment,
@@ -129,10 +139,12 @@ function createPlanet(
   );
   tilt.add(surface);
 
-  let haloUniforms: { uRadius: THREE.IUniform<number> } | undefined;
+  let haloUniforms:
+    | { uRadius: THREE.IUniform<number>; uStrength: THREE.IUniform<number> }
+    | undefined;
   if (look.halo) {
     const halo = new THREE.Mesh(
-      lowSphereGeometry,
+      geometry.lowSphere,
       new THREE.ShaderMaterial({
         vertexShader: bodyVertex,
         fragmentShader: haloFragment,
@@ -155,7 +167,11 @@ function createPlanet(
   }
 
   let ringUniforms:
-    | { uPlanetRadius: THREE.IUniform<number>; uRecede: THREE.IUniform<number> }
+    | {
+        uPlanetRadius: THREE.IUniform<number>;
+        uRecede: THREE.IUniform<number>;
+        uVeil: THREE.IUniform<number>;
+      }
     | undefined;
   if (look.ring) {
     const ring = new THREE.Mesh(
@@ -173,6 +189,7 @@ function createPlanet(
           uColorA: { value: color(look.ring.colors[0]) },
           uColorB: { value: color(look.ring.colors[1]) },
           uRecede: { value: 0 },
+          uVeil: uniforms.uVeil,
         },
         transparent: true,
         side: THREE.DoubleSide,
@@ -185,19 +202,11 @@ function createPlanet(
   }
 
   let moon: THREE.Mesh | undefined;
-  let moonUniforms:
-    | {
-        uCenter: THREE.IUniform<THREE.Vector3>;
-        uRecede: THREE.IUniform<number>;
-      }
-    | undefined;
+  let moonUniforms: { uCenter: THREE.IUniform<THREE.Vector3> } | undefined;
   if (look.moon) {
-    moonUniforms = {
-      uCenter: { value: new THREE.Vector3() },
-      uRecede: { value: 0 },
-    };
+    moonUniforms = { uCenter: { value: new THREE.Vector3() } };
     moon = new THREE.Mesh(
-      lowSphereGeometry,
+      geometry.lowSphere,
       new THREE.ShaderMaterial({
         vertexShader: bodyVertex,
         fragmentShader: planetFragment,
@@ -216,6 +225,7 @@ function createPlanet(
   }
 
   const ringNormal = new THREE.Vector3();
+  const haloStrength = look.halo?.strength ?? 0;
   let spin = 0;
   let hover = 0;
   const body: WorldBody = {
@@ -227,6 +237,7 @@ function createPlanet(
     labelRadius: look.radius,
     viewLift: look.viewLift ?? 0.3,
     orbit: look.orbit,
+    veil: 0,
     update(context) {
       orbitPosition(look.orbit, context.orbitTime, group.position);
       const scale = look.radius * context.displayScale;
@@ -236,25 +247,27 @@ function createPlanet(
       body.labelRadius = scale * (look.ring ? look.ring.outer * 0.52 : 1);
 
       const attention = context.focusId === id ? context.focus : 0;
-      spin += ((TAU * context.dt) / look.spinPeriod) * (1 - attention);
+      spin += ((TAU * context.ambientDt) / look.spinPeriod) * (1 - attention);
       if (look.feature && attention > 0) {
         const [fx, , fz] = look.feature;
         const facing =
           Math.atan2(context.faceDirection.x, context.faceDirection.z) -
           Math.atan2(fx, fz);
-        spin +=
-          shortestAngle(facing - spin) *
-          (1 - Math.exp(-context.dt * 2.4)) *
-          attention;
+        spin += shortestAngle(facing - spin) * context.damp(2.4) * attention;
       }
       surface.rotation.y = spin;
 
-      hover +=
-        (hoverTarget(context, id) - hover) * (1 - Math.exp(-context.dt * 9));
+      hover += (hoverTarget(context, id) - hover) * context.damp(9);
       uniforms.uHover.value = hover;
       uniforms.uRecede.value = recedeFor(context, id);
+      uniforms.uVeil.value +=
+        (body.veil - uniforms.uVeil.value) * context.damp(6);
       uniforms.uCenter.value.copy(group.position);
-      if (haloUniforms) haloUniforms.uRadius.value = scale;
+      if (haloUniforms) {
+        haloUniforms.uRadius.value = scale;
+        haloUniforms.uStrength.value =
+          haloStrength * (1 - 0.85 * uniforms.uVeil.value);
+      }
       if (look.ring && ringUniforms) {
         tilt.updateWorldMatrix(true, false);
         ringNormal.setFromMatrixColumn(tilt.matrixWorld, 1).normalize();
@@ -277,7 +290,6 @@ function createPlanet(
           .copy(moon.position)
           .multiplyScalar(scale)
           .add(group.position);
-        moonUniforms.uRecede.value = uniforms.uRecede.value;
       }
     },
   };
@@ -326,6 +338,7 @@ function createSignal(
     uOpacity: { value: 1 },
     uCore: { value: 0.5 },
     uGlow: { value: 0.9 },
+    uSpikes: { value: 0 },
   };
   const dust = new THREE.Points(
     geometry,
@@ -342,6 +355,7 @@ function createSignal(
   group.add(dust);
 
   let hover = 0;
+  let veil = 0;
   const body: WorldBody = {
     id,
     group,
@@ -351,6 +365,7 @@ function createSignal(
     labelRadius: look.radius,
     viewLift: look.viewLift ?? 0.3,
     orbit: look.orbit,
+    veil: 0,
     update(context) {
       orbitPosition(look.orbit, context.orbitTime, group.position);
       const scale = look.radius * context.displayScale;
@@ -359,15 +374,16 @@ function createSignal(
       body.frameRadius = scale * look.frameRadius;
       body.labelRadius = scale;
       dust.rotation.y = (TAU * context.orbitTime) / 70;
-      hover +=
-        (hoverTarget(context, id) - hover) * (1 - Math.exp(-context.dt * 9));
+      hover += (hoverTarget(context, id) - hover) * context.damp(9);
+      veil += (body.veil - veil) * context.damp(6);
       const attention = context.focusId === id ? context.focus : 0;
       const pulse =
         0.8 + 0.2 * Math.sin(shared.uTime.value * 0.9 + look.orbit.angle);
       uniforms.uOpacity.value =
         (0.62 + 0.38 * Math.max(hover, attention)) *
         pulse *
-        (1 - 0.5 * recedeFor(context, id));
+        (1 - 0.5 * recedeFor(context, id)) *
+        (1 - 0.85 * veil);
     },
   };
   return body;
@@ -381,19 +397,23 @@ export function seededRandom(seed: number) {
   };
 }
 
-export function createWorlds(shared: SharedUniforms, textures: UmbralTextures) {
+export function createWorlds(
+  shared: SharedUniforms,
+  geometry: SharedGeometry,
+  textures: UmbralTextures,
+) {
   return Object.entries(looks).map(([id, look]) =>
     look.type === 'planet'
-      ? createPlanet(id, look, shared, textures)
+      ? createPlanet(id, look, shared, geometry, textures)
       : createSignal(id, look, shared),
   );
 }
 
-export function createSun(shared: SharedUniforms) {
+export function createSun(shared: SharedUniforms, geometry: SharedGeometry) {
   const group = new THREE.Group();
   const uniforms = { uTime: shared.uTime, uRecede: { value: 0 } };
   const core = new THREE.Mesh(
-    sphereGeometry,
+    geometry.sphere,
     new THREE.ShaderMaterial({
       vertexShader: bodyVertex,
       fragmentShader: sunFragment,
@@ -426,11 +446,17 @@ export function createSun(shared: SharedUniforms) {
   glow.scale.setScalar(SUN_RADIUS * 9);
   group.add(glow);
 
+  let veil = 0;
   return {
     group,
-    update(recede: number) {
-      uniforms.uRecede.value = recede;
-      glowMaterial.opacity = 1 - 0.45 * recede;
+    radius: SUN_RADIUS,
+    update(context: FrameContext, veilTarget: number) {
+      veil += (veilTarget - veil) * context.damp(6);
+      uniforms.uRecede.value = Math.min(1, context.recede + veil);
+      glowMaterial.opacity = (1 - 0.45 * context.recede) * (1 - 0.8 * veil);
+    },
+    dispose() {
+      glowTexture.dispose();
     },
   };
 }
@@ -477,21 +503,20 @@ export function createOrbits() {
     }
     lines.set(id, material);
   }
-  const base = new Map([...drawn.values()].map((material) => [material, 0]));
+  const active = new Map([...drawn.values()].map((material) => [material, 0]));
   return {
     group,
     update(context: FrameContext, visibility: number) {
-      base.forEach((_, material) => base.set(material, 0));
+      active.forEach((_, material) => active.set(material, 0));
       lines.forEach((material, id) => {
-        const active = context.hoverId === id || context.focusId === id ? 1 : 0;
-        base.set(material, Math.max(base.get(material) ?? 0, active));
+        const lit = context.hoverId === id || context.focusId === id ? 1 : 0;
+        active.set(material, Math.max(active.get(material) ?? 0, lit));
       });
-      base.forEach((active, material) => {
+      active.forEach((lit, material) => {
         const rest = material instanceof THREE.LineDashedMaterial ? 0.2 : 0.3;
         const target =
-          (rest + 0.34 * active) * (1 - 0.62 * context.recede) * visibility;
-        material.opacity +=
-          (target - material.opacity) * (1 - Math.exp(-context.dt * 8));
+          (rest + 0.34 * lit) * (1 - 0.8 * context.recede) * visibility;
+        material.opacity += (target - material.opacity) * context.damp(8);
       });
     },
   };
@@ -549,6 +574,7 @@ export function createStarfield(shared: SharedUniforms) {
         uOpacity: { value: 1 },
         uCore: { value: 0.9 },
         uGlow: { value: 0 },
+        uSpikes: { value: 0 },
       },
       transparent: true,
       blending: THREE.AdditiveBlending,

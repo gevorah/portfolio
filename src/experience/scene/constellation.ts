@@ -73,6 +73,7 @@ export function createConstellation(shared: SharedUniforms) {
     uOpacity: { value: 0 },
     uCore: { value: 0.26 },
     uGlow: { value: 0.75 },
+    uSpikes: { value: 0 },
   };
   const points = new THREE.Points(
     starGeometry,
@@ -157,15 +158,18 @@ export function createConstellation(shared: SharedUniforms) {
         position.copy(local(id)).applyMatrix4(group.matrixWorld),
       );
     },
-    update(dt: number, visibility: number, selectedId: string) {
+    update(
+      damp: (rate: number) => number,
+      visibility: number,
+      selectedId: string,
+    ) {
       group.visible = visibility > 0.002;
       starUniforms.uOpacity.value = visibility;
       threadUniforms.uOpacity.value = visibility * 0.62;
       threadUniforms.uDraw.value = visibility * 1.06;
       stars.forEach((stage, index) => {
         const target = stage.id === selectedId ? 1 : 0;
-        selection[index] +=
-          (target - selection[index]) * (1 - Math.exp(-dt * 7));
+        selection[index] += (target - selection[index]) * damp(7);
         brightness[index] =
           (stage.rank === 'minor' ? 0.5 : 0.7) + 0.3 * selection[index];
       });
