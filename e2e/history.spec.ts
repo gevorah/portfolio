@@ -68,3 +68,28 @@ test('an unknown world in the url is ignored', async ({ page }) => {
   await expect(page).toHaveURL(/^(?!.*world=)/);
   expect(await world(page)).toBeNull();
 });
+
+test('remounting the experience does not duplicate its behaviour', async ({
+  page,
+}) => {
+  await open(page);
+  for (let index = 0; index < 3; index++) {
+    await page.evaluate(() =>
+      (window as unknown as { __remount(): void }).__remount(),
+    );
+    await page.waitForSelector('#scene[data-ready]');
+  }
+  await scrollTo(page, 'work');
+  const length = await page.evaluate(() => history.length);
+  await selectWorld(page, 'umbral');
+  await settled(page, 1);
+  expect(await page.evaluate(() => history.length)).toBe(length + 1);
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => world(page)).toBe('finance');
+  await page.waitForTimeout(300);
+  expect(await world(page)).toBe('finance');
+  await page.keyboard.press('Escape');
+  await settled(page, 0);
+  await expect(page).toHaveURL(/^(?!.*world=)/);
+  expect(await page.evaluate(() => history.length)).toBe(length + 1);
+});

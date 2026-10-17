@@ -1,4 +1,4 @@
-import gsap from 'gsap';
+import { gsap } from 'gsap/gsap-core';
 
 import { defaultStageId, stageIds, type StageId } from '@/data/career';
 import { worldIds, type WorldId } from '@/data/worlds';
@@ -113,11 +113,19 @@ function clearFocus() {
   notify();
 }
 
-motionQuery.addEventListener('change', (event) => {
-  state.motion = motionPolicy(event.matches);
-  if (!state.motion.transitions) settleFocus(state.focused ? 1 : 0);
-  notify();
-});
+export function watchMotionPreference() {
+  const onChange = (event: MediaQueryListEvent) => {
+    state.motion = motionPolicy(event.matches);
+    if (!state.motion.transitions) settleFocus(state.focused ? 1 : 0);
+    notify();
+  };
+  motionQuery.addEventListener('change', onChange);
+  return () => motionQuery.removeEventListener('change', onChange);
+}
+
+export function stopTransitions() {
+  gsap.killTweensOf(state);
+}
 
 export const selectedWorld = () => (state.focused ? state.focusId : null);
 

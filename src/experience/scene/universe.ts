@@ -129,27 +129,32 @@ export async function createUniverse(elements: UniverseElements) {
     );
 
     const geometry = createSharedGeometry();
-    const sun = createSun(shared, geometry);
-    const orbits = createOrbits();
-    const worlds = createWorlds(shared, geometry, { albedo, data });
-    const worldById = new Map(worlds.map((world) => [world.id, world]));
-    const starfield = createStarfield(shared);
-    const constellation = createConstellation(shared);
-    scene.add(starfield, orbits.group, sun.group, constellation.group);
-    worlds.forEach((world) => scene.add(world.group));
     cleanup.push(() => {
+      const owned = new Set<{ dispose(): void }>([
+        geometry.sphere,
+        geometry.lowSphere,
+      ]);
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
-        mesh.geometry?.dispose();
-        const materials = Array.isArray(mesh.material)
-          ? mesh.material
-          : [mesh.material];
-        materials.forEach((material) => material?.dispose());
+        if (mesh.geometry) owned.add(mesh.geometry);
+        [mesh.material].flat().forEach((material) => {
+          if (material) owned.add(material);
+        });
       });
-      geometry.sphere.dispose();
-      geometry.lowSphere.dispose();
-      sun.dispose();
+      owned.forEach((resource) => resource.dispose());
     });
+    const sun = createSun(shared, geometry);
+    cleanup.push(() => sun.dispose());
+    scene.add(sun.group);
+    const orbits = createOrbits();
+    scene.add(orbits.group);
+    const worlds = createWorlds(shared, geometry, { albedo, data });
+    worlds.forEach((world) => scene.add(world.group));
+    const worldById = new Map(worlds.map((world) => [world.id, world]));
+    const starfield = createStarfield(shared);
+    scene.add(starfield);
+    const constellation = createConstellation(shared);
+    scene.add(constellation.group);
 
     let width = 0;
     let height = 0;
