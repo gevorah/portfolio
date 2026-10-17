@@ -4,6 +4,9 @@ import {
   dispatchClick,
   focusedElement,
   open,
+  sampleScene,
+  sceneCoverage,
+  sceneDifference,
   scrollTo,
   sectionTop,
   selectWorld,
@@ -91,6 +94,60 @@ test('focus follows the selected world', async ({ page }) => {
   await expect(page.locator('[data-world-status]')).toContainText(
     'Full system',
   );
+});
+
+test('arrow keys with a modifier leave the selected world to the browser', async ({
+  page,
+}) => {
+  await open(page);
+  await scrollTo(page, 'work');
+  const order = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('[data-world-detail]')].map(
+      (detail) => detail.dataset.worldDetail!,
+    ),
+  );
+  await page.evaluate(() => {
+    window.__prevented = [];
+    window.addEventListener('keydown', (event) =>
+      window.__prevented.push(event.defaultPrevented),
+    );
+  });
+
+  await page.locator(`[data-world-marker="${order[0]}"]`).focus();
+  await page.keyboard.press('Enter');
+  expect(await focusedElement(page)).toBe(`world-${order[0]}-title`);
+
+  for (const shortcut of [
+    'Alt+ArrowRight',
+    'Control+ArrowRight',
+    'Control+ArrowLeft',
+    'Meta+ArrowRight',
+    'Shift+ArrowRight',
+    'Shift+ArrowLeft',
+  ]) {
+    await page.keyboard.press(shortcut);
+    await expect(
+      page.locator(`[data-world-detail="${order[0]}"]`),
+      shortcut,
+    ).toHaveAttribute('data-active', '');
+    expect(await focusedElement(page), shortcut).toBe(
+      `world-${order[0]}-title`,
+    );
+  }
+
+  await page.locator('[data-nav]').first().focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(
+    page.locator(`[data-world-detail="${order[0]}"]`),
+  ).toHaveAttribute('data-active', '');
+
+  await page.locator(`#world-${order[0]}-title`).focus();
+  await page.keyboard.press('ArrowRight');
+  expect(await focusedElement(page)).toBe(`world-${order[1]}-title`);
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowLeft');
+  expect(await focusedElement(page)).toBe(`world-${order.at(-1)}-title`);
+  expect(await page.evaluate(() => window.__prevented)).not.toContain(true);
 });
 
 test('rapid changes leave a consistent state', async ({ page }) => {
@@ -324,3 +381,168 @@ for (const viewport of [
     expect(reachable).toBe(false);
   });
 }
+
+const orbit = (page: Page) =>
+  page.evaluate(() => ({ ...window.__experience.orbit }));
+
+async function emptyWorkPoint(page: Page) {
+  return page.evaluate(() => {
+    for (let y = 150; y < innerHeight - 100; y += 20)
+      for (let x = innerWidth * 0.35; x < innerWidth * 0.9; x += 20)
+        if (document.elementFromPoint(x, y)?.id === 'work') return { x, y };
+    throw new Error('No empty space in Work');
+  });
+}
+
+const visibleWorlds = (page: Page) =>
+  page.evaluate(() =>
+    Object.fromEntries(
+      [
+        ...document.querySelectorAll<HTMLElement>(
+          '.world-marker:not([data-offstage])',
+        ),
+      ].map((marker) => {
+        const box = marker.getBoundingClientRect();
+        return [
+          marker.dataset.worldMarker!,
+          { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+        ];
+      }),
+    ),
+  );
+
+const largestShift = (
+  from: Record<string, { x: number; y: number }>,
+  to: Record<string, { x: number; y: number }>,
+) =>
+  Math.max(
+    ...Object.keys(from).map((id) =>
+      to[id]
+        ? Math.hypot(from[id].x - to[id].x, from[id].y - to[id].y)
+        : Infinity,
+    ),
+  );
+
+async function expectPlanetsUnderMarkers(page: Page) {
+  for (const id of ['umbral', 'finance'])
+    expect(
+      await sceneCoverage(page, `[data-world-marker="${id}"]`),
+      `${id} is drawn under its marker`,
+    ).toBeGreaterThan(0.08);
+}
+
+async function openVisibleWorld(page: Page, id: string) {
+  await selectWorld(page, id);
+  await settled(page, 1);
+  const name = (await page.locator(`#world-${id} h3`).textContent())!.trim();
+  await expect(
+    page.getByRole('heading', { level: 3, name, exact: true }),
+  ).toBeVisible();
+  expect(await page.evaluate(() => window.__experience.focusId)).toBe(id);
+}
+
+test('dragging rotates the Work view, keeps project selection and resets outside Work', async ({
+  page,
+}) => {
+  await open(page);
+  await scrollTo(page, 'work');
+  await page.waitForTimeout(800);
+  const start = await emptyWorkPoint(page);
+  await page.mouse.click(start.x, start.y);
+  expect(await orbit(page)).toEqual({ yaw: 0, pitch: 0 });
+  await page.evaluate(() => window.__universe.setOrbitTime(80));
+  await page.waitForTimeout(400);
+  const before = await visibleWorlds(page);
+
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x - 200, start.y + 100, { steps: 10 });
+  await page.mouse.up();
+  const rotated = await orbit(page);
+  expect(rotated.yaw).toBeGreaterThan(0);
+  expect(rotated.pitch).toBeGreaterThan(0);
+  expect(await page.evaluate(() => String(getSelection()))).toBe('');
+  await page.waitForTimeout(800);
+  expect(largestShift(before, await visibleWorlds(page))).toBeGreaterThan(40);
+  await expectPlanetsUnderMarkers(page);
+
+  await selectWorld(page, 'umbral');
+  await settled(page, 1);
+  await page.keyboard.press('Escape');
+  await settled(page, 0);
+  expect(await orbit(page)).toEqual(rotated);
+
+  await scrollTo(page, 'experience');
+  await expect.poll(() => orbit(page)).toEqual({ yaw: 0, pitch: 0 });
+});
+
+test('Explore view turns the visible system, keeps it through a project and resets it', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page);
+  await scrollTo(page, 'work');
+  await page.evaluate(() => window.__universe.setOrbitTime(80));
+  await page.waitForTimeout(400);
+  const original = await visibleWorlds(page);
+  const originalScene = await sampleScene(page, '#scene');
+  await expectPlanetsUnderMarkers(page);
+
+  const toggle = page.getByRole('button', { name: 'Explore view' });
+  await toggle.focus();
+  await page.keyboard.press('Enter');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  for (const name of ['Rotate left', 'Rotate left', 'Tilt up', 'Tilt up']) {
+    await page.getByRole('button', { name }).focus();
+    await page.keyboard.press('Enter');
+  }
+  await page.waitForTimeout(400);
+  const rotated = await visibleWorlds(page);
+  const rotatedScene = await sampleScene(page, '#scene');
+  expect(largestShift(original, rotated)).toBeGreaterThan(60);
+  expect(
+    sceneDifference(originalScene.cells, rotatedScene.cells),
+  ).toBeGreaterThan(0.3);
+  await expectPlanetsUnderMarkers(page);
+
+  await openVisibleWorld(page, 'umbral');
+  await page.getByRole('button', { name: 'Back to the system' }).click();
+  await settled(page, 0);
+  await page.waitForTimeout(400);
+  expect(largestShift(rotated, await visibleWorlds(page))).toBeLessThan(2);
+  await expectPlanetsUnderMarkers(page);
+
+  await page.getByRole('button', { name: 'Reset view' }).click();
+  await page.waitForTimeout(400);
+  expect(largestShift(original, await visibleWorlds(page))).toBeLessThan(2);
+  await expectPlanetsUnderMarkers(page);
+
+  await openVisibleWorld(page, 'finance');
+});
+
+test('touch swipes over Work scroll the page instead of rotating', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+  await open(page);
+  await scrollTo(page, 'work');
+  await page.waitForTimeout(800);
+  const before = await page.evaluate(() => scrollY);
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Input.synthesizeScrollGesture', {
+    x: 200,
+    y: 500,
+    yDistance: -300,
+    gestureSourceType: 'touch',
+  });
+  await expect
+    .poll(() => page.evaluate(() => scrollY))
+    .toBeGreaterThan(before + 100);
+  expect(await orbit(page)).toEqual({ yaw: 0, pitch: 0 });
+  await context.close();
+});

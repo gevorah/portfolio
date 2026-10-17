@@ -17,6 +17,7 @@ export interface ExperienceState {
   hoverId: WorldId | null;
   stageId: StageId;
   motion: MotionPolicy;
+  orbit: { yaw: number; pitch: number };
 }
 
 type Listener = (state: ExperienceState) => void;
@@ -34,7 +35,26 @@ export const state: ExperienceState = {
   hoverId: null,
   stageId: defaultStageId,
   motion: motionPolicy(motionQuery.matches),
+  orbit: { yaw: 0, pitch: 0 },
 };
+
+export const ORBIT_PITCH = { min: -32, max: 30 };
+
+export function rotateView(yaw: number, pitch: number) {
+  state.orbit.yaw += yaw;
+  state.orbit.pitch = Math.min(
+    ORBIT_PITCH.max,
+    Math.max(ORBIT_PITCH.min, state.orbit.pitch + pitch),
+  );
+  notify();
+}
+
+export function resetView() {
+  if (state.orbit.yaw === 0 && state.orbit.pitch === 0) return;
+  state.orbit.yaw = 0;
+  state.orbit.pitch = 0;
+  notify();
+}
 
 const listeners = new Set<Listener>();
 const renderRequests = new Set<() => void>();

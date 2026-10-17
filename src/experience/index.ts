@@ -7,7 +7,9 @@ import {
   adjacentWorld,
   focusWorld,
   invalidate,
+  resetView,
   returnToSystem,
+  rotateView,
   selectedWorld,
   selectStage,
   setHover,
@@ -89,6 +91,7 @@ export function mountExperience() {
       sectionProgress(contactSection.getBoundingClientRect().top, viewport),
     );
     setScroll(timeline.zone, timeline.weights);
+    if (timeline.zone !== 'work') resetView();
     root.style.setProperty('--work', timeline.weights.work.toFixed(3));
     root.style.setProperty('--career', timeline.weights.career.toFixed(3));
 
@@ -250,6 +253,8 @@ export function mountExperience() {
       const target = event.target as HTMLElement;
       if (target !== document.body && !workSection.contains(target)) return;
       if (event.key === 'Escape') hideWorld();
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+        return;
       if (event.key === 'ArrowRight') stepWorld(1);
       if (event.key === 'ArrowLeft') stepWorld(-1);
     },
@@ -322,6 +327,76 @@ export function mountExperience() {
       if (target !== document.body && !careerSection.contains(target)) return;
       if (event.key === 'ArrowRight') openStage(adjacentStage(1));
       if (event.key === 'ArrowLeft') openStage(adjacentStage(-1));
+    },
+    { signal },
+  );
+
+  let drag: { id: number; x: number; y: number; moved: boolean } | null = null;
+  workSection.addEventListener(
+    'pointerdown',
+    (event) => {
+      if (event.target !== workSection || event.button !== 0) return;
+      if (event.pointerType === 'touch' || root.classList.contains('no-webgl'))
+        return;
+      if (state.focused || state.zone !== 'work') return;
+      drag = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        moved: false,
+      };
+      workSection.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    },
+    { signal },
+  );
+  workSection.addEventListener(
+    'pointermove',
+    (event) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+      drag.moved = true;
+      root.toggleAttribute('data-orbiting', true);
+      drag.x = event.clientX;
+      drag.y = event.clientY;
+      rotateView(-dx * 0.3, dy * 0.2);
+    },
+    { signal },
+  );
+  const endDrag = () => {
+    drag = null;
+    root.removeAttribute('data-orbiting');
+  };
+  workSection.addEventListener('pointerup', endDrag, { signal });
+  workSection.addEventListener('pointercancel', endDrag, { signal });
+
+  const orbitSteps: Record<string, [number, number]> = {
+    left: [24, 0],
+    right: [-24, 0],
+    up: [0, 10],
+    down: [0, -10],
+  };
+  all('[data-orbit]').forEach((button) =>
+    button.addEventListener(
+      'click',
+      () => {
+        const step = orbitSteps[button.dataset.orbit!];
+        if (step) rotateView(...step);
+        else resetView();
+      },
+      { signal },
+    ),
+  );
+  const exploreToggle = one('[data-explore-toggle]');
+  const exploreControls = one('#explore-controls');
+  exploreToggle.addEventListener(
+    'click',
+    () => {
+      const open = exploreToggle.getAttribute('aria-expanded') !== 'true';
+      exploreToggle.setAttribute('aria-expanded', String(open));
+      exploreControls.hidden = !open;
     },
     { signal },
   );

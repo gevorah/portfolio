@@ -4,12 +4,14 @@ declare global {
   interface Window {
     __draws: number;
     __links: number;
+    __prevented: boolean[];
     __experience: {
       focused: boolean;
       focusId: string | null;
       focus: number;
       zone: string;
       stageId: string;
+      orbit: { yaw: number; pitch: number };
     };
     __universe: {
       stats: { pixelRatio: number; mode: string; frames: number };
@@ -114,6 +116,7 @@ export async function drawCallsDuring(page: Page, ms: number) {
 }
 
 const LIT_LUMINANCE = 48;
+const GRID = { columns: 12, rows: 8 };
 
 export async function sampleScene(page: Page, selector: string) {
   const overlay = await page.addStyleTag({
@@ -132,9 +135,15 @@ export async function sampleScene(page: Page, selector: string) {
     };
   });
   const image = (await page.screenshot({ clip })).toString('base64');
-  await overlay.evaluate((style) => (style as Element).remove());
+  await overlay.evaluate(
+    (style) =>
+      new Promise((resolve) => {
+        (style as Element).remove();
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }),
+  );
   const sample = await page.evaluate(
-    async ([data, threshold]) => {
+    async ([data, threshold, grid]) => {
       const blob = await (await fetch(`data:image/png;base64,${data}`)).blob();
       const bitmap = await createImageBitmap(blob);
       const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
@@ -146,6 +155,7 @@ export async function sampleScene(page: Page, selector: string) {
         bitmap.width,
         bitmap.height,
       );
+      const cells = new Array<number>(grid.columns * grid.rows).fill(0);
       let lit = 0;
       let weight = 0;
       let sumX = 0;
@@ -157,23 +167,45 @@ export async function sampleScene(page: Page, selector: string) {
           0.0722 * pixels[index + 2];
         if (luminance <= threshold) continue;
         const pixel = index / 4;
+        const column = Math.floor(((pixel % width) / width) * grid.columns);
+        const row = Math.floor(
+          (Math.floor(pixel / width) / bitmap.height) * grid.rows,
+        );
+        cells[row * grid.columns + column] += 1;
         lit += 1;
         weight += luminance;
         sumX += (pixel % width) * luminance;
         sumY += Math.floor(pixel / width) * luminance;
       }
+      const cellArea = (bitmap.width * bitmap.height) / cells.length;
       return {
         coverage: lit / (bitmap.width * bitmap.height),
         center: { x: sumX / weight, y: sumY / weight },
+        cells: cells.map((count) => count / cellArea),
       };
     },
-    [image, LIT_LUMINANCE] as const,
+    [image, LIT_LUMINANCE, GRID] as const,
   );
   return {
     coverage: sample.coverage,
+    cells: sample.cells,
     center: { x: clip.x + sample.center.x, y: clip.y + sample.center.y },
   };
 }
 
 export const sceneCoverage = async (page: Page, selector: string) =>
   (await sampleScene(page, selector)).coverage;
+
+const OCCUPIED = 0.004;
+
+export function sceneDifference(a: number[], b: number[]) {
+  let either = 0;
+  let one = 0;
+  a.forEach((value, index) => {
+    const inA = value > OCCUPIED;
+    const inB = b[index] > OCCUPIED;
+    if (inA || inB) either += 1;
+    if (inA !== inB) one += 1;
+  });
+  return one / either;
+}

@@ -56,6 +56,76 @@
     color: var(--color-haze);
   }
 
+  .explore-view {
+    display: none;
+    margin-top: 1rem;
+    pointer-events: auto;
+  }
+
+  .js:not(.no-webgl) .explore-view {
+    display: block;
+  }
+
+  .explore-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: var(--control);
+    font-size: 0.875rem;
+    color: var(--color-haze);
+    transition: color 0.2s;
+  }
+
+  .explore-toggle svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--color-lilac);
+  }
+
+  .explore-toggle:hover,
+  .explore-toggle[aria-expanded='true'] {
+    color: var(--color-starlight);
+  }
+
+  .explore-controls:not([hidden]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .explore-controls [data-orbit='reset'] {
+    margin-left: 0.5rem;
+  }
+
+  .explore-hint {
+    flex-basis: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--color-haze);
+  }
+
+  @media (pointer: coarse) {
+    .explore-hint {
+      display: none;
+    }
+  }
+
+  .js:not(.no-webgl) .work:not([data-focus]) {
+    cursor: grab;
+  }
+
+  .js .work :is(.work-content, .markers) {
+    cursor: auto;
+  }
+
+  [data-orbiting],
+  [data-orbiting] .work {
+    cursor: grabbing;
+    user-select: none;
+  }
+
   .world-meta {
     letter-spacing: 0.01em;
   }
@@ -202,7 +272,7 @@
     .work-prompt {
       align-self: end;
       justify-self: start;
-      max-width: 24rem;
+      max-width: 30rem;
     }
 
     .work-detail {

@@ -84,10 +84,6 @@ const HERO_VIEW = direction(
   SYSTEM_VIEWS.hero.elevation,
   SYSTEM_VIEWS.hero.azimuth,
 );
-const ATLAS_VIEW = direction(
-  SYSTEM_VIEWS.atlas.elevation,
-  SYSTEM_VIEWS.atlas.azimuth,
-);
 
 const COMET_SUBJECT = COMET_POSITION.clone().addScaledVector(
   COMET_AXIS,
@@ -132,6 +128,8 @@ export function createRig(camera: THREE.PerspectiveCamera) {
   const anchor = new THREE.Vector3();
   let anchorRadius = 1;
   let anchored = false;
+  const orbitNow = { yaw: 0, pitch: 0 };
+  const atlasElevation = () => SYSTEM_VIEWS.atlas.elevation + orbitNow.pitch;
   let viewOwner: string | null = null;
   let viewTarget: ViewCandidate = viewCandidates(0.3)[0];
   const viewNow: ViewCandidate = { ...viewTarget };
@@ -199,7 +197,10 @@ export function createRig(camera: THREE.PerspectiveCamera) {
         atlas,
         frames.atlas,
         SYSTEM_RADIUS.atlas,
-        SYSTEM_VIEWS.atlas.aspect,
+        Math.max(
+          SYSTEM_VIEWS.atlas.aspect,
+          Math.sin(THREE.MathUtils.degToRad(atlasElevation())) * 1.08,
+        ),
       );
       const blend = state.weights.work + state.weights.career;
       const systemPx = THREE.MathUtils.lerp(heroPx, atlasPx, blend);
@@ -219,7 +220,12 @@ export function createRig(camera: THREE.PerspectiveCamera) {
       hero.subject.set(0, 0, 0);
       hero.view.copy(HERO_VIEW);
       atlas.subject.set(0, 0, 0);
-      atlas.view.copy(ATLAS_VIEW);
+      const settle = input.damp(6);
+      orbitNow.yaw += (state.orbit.yaw - orbitNow.yaw) * settle;
+      orbitNow.pitch += (state.orbit.pitch - orbitNow.pitch) * settle;
+      atlas.view.copy(
+        direction(atlasElevation(), SYSTEM_VIEWS.atlas.azimuth + orbitNow.yaw),
+      );
 
       if (focused) {
         const arriving = state.focus < 0.02 || !anchored;
