@@ -11,6 +11,18 @@
     display: block;
   }
 
+  html:not(.js) .world-index button {
+    display: none;
+  }
+
+  html:not(.js) .world-index a {
+    display: flex;
+  }
+
+  html:not(.js) .world-detail {
+    scroll-margin-top: var(--screen-top);
+  }
+
   html:not(.js) .world-detail + .world-detail {
     margin-top: 3rem;
   }

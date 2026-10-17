@@ -41,7 +41,7 @@
     border-top: 1px solid var(--color-ridge);
   }
 
-  .world-index button {
+  .world-index :is(button, a) {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -51,6 +51,10 @@
     padding: 0.7rem 0;
     border-bottom: 1px solid var(--color-ridge);
     text-align: left;
+  }
+
+  .world-index a {
+    display: none;
   }
 
   .world-index .name {

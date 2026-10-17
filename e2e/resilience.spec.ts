@@ -20,6 +20,7 @@ async function expectSceneFallback(page: Page) {
   await expect(page.locator('html')).toHaveClass(/no-webgl/);
   await scrollTo(page, 'work');
   await expect(page.locator('.work-content')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.world-index').getByRole('link')).toHaveCount(0);
   await page.getByRole('button', { name: /^Personal Finance/ }).click();
   await expect(page.locator('#world-finance')).toBeVisible();
   await scrollTo(page, 'experience');

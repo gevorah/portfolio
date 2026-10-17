@@ -53,6 +53,10 @@ const studyImages: Record<StudyImage, ImageMetadata> = {
               <span class="name">{world.name}</span>
               <span class="kind">{world.kind}</span>
             </button>
+            <a href={`#world-${world.id}`}>
+              <span class="name">{world.name}</span>
+              <span class="kind">{world.kind}</span>
+            </a>
           </li>
         ))}
       </ul>

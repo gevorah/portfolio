@@ -88,3 +88,43 @@ test('Contact lists every channel as a labelled row', async ({ page }) => {
     /^mailto:jhon\.ijaji\.o@gmail\.com$/,
   );
 });
+
+for (const { label, viewport, fontSize } of [
+  { label: 'desktop', viewport: { width: 1080, height: 743 }, fontSize: 16 },
+  { label: 'mobile', viewport: { width: 390, height: 844 }, fontSize: 16 },
+  { label: 'zoomed', viewport: { width: 720, height: 450 }, fontSize: 16 },
+  {
+    label: 'enlarged text',
+    viewport: { width: 390, height: 844 },
+    fontSize: 32,
+  },
+]) {
+  test(`the project index lands each project below the header (${label})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: fontSize } });
+    await page.goto('/');
+    const index = page.locator('.world-index');
+    await expect(index.getByRole('button')).toHaveCount(0);
+    const links = index.getByRole('link');
+    await expect(links).toHaveCount(worlds.length);
+    for (const world of worlds) {
+      await links.filter({ hasText: world.name }).focus();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(new RegExp(`#world-${world.id}$`));
+      const [header, meta, heading] = await page.evaluate((id) => {
+        const article = document.getElementById(`world-${id}`)!;
+        return [
+          document.querySelector('.site-header')!,
+          article.querySelector('.world-meta')!,
+          article.querySelector('h3')!,
+        ].map((element) => element.getBoundingClientRect());
+      }, world.id);
+      expect(meta.top).toBeGreaterThanOrEqual(header.bottom);
+      expect(heading.bottom).toBeLessThanOrEqual(viewport.height);
+    }
+  });
+}
