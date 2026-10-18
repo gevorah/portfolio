@@ -1,6 +1,7 @@
 import { isStageId, stageIds, type StageId } from '@/data/career';
 import { isWorldId, worldIds, type WorldId } from '@/data/worlds';
 
+import { keepFragmentInView } from './fragment';
 import { historyMode, urlForWorld, WORLD_PARAM, worldFromUrl } from './history';
 import {
   adjacentStage,
@@ -464,6 +465,7 @@ export function mountExperience() {
   } else if (new URL(window.location.href).searchParams.has(WORLD_PARAM)) {
     history.replaceState(null, '', urlForWorld(window.location.href, null));
   }
+  if (!linkedWorld) keepFragmentInView(signal);
 
   function setSceneAvailable(available: boolean) {
     root.classList.toggle('no-webgl', !available);
