@@ -1,23 +1,27 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import Navbar from '@/components/Navbar.astro';
-import Footer from '@/components/Footer.astro'
-
+import Career from '@/components/Career.astro';
 import Hero from '@/components/Hero.astro';
-import AboutMe from '@/components/AboutMe.astro'
-import Skills from '@/components/Skills.astro'
-import Experience from '@/components/Experience.astro'
-import Projects from '@/components/Projects.astro'
+import Outro from '@/components/Outro.astro';
+import SiteHeader from '@/components/SiteHeader.astro';
+import Work from '@/components/Work.astro';
+import Layout from '@/layouts/Layout.astro';
 ---
 
-<Layout title="gevorah">
-  <Navbar />
-	<main>
+<Layout
+  title="gevorah — Jhon, software engineer"
+  description="Portfolio of Jhon, software engineer. Web products built with a full-stack background, and Universe, a space for interactive experiments."
+>
+  <canvas class="universe" id="scene" aria-hidden="true"></canvas>
+  <span class="focus-halo" aria-hidden="true" hidden data-focus-halo></span>
+  <SiteHeader />
+  <main class="site-main">
     <Hero />
-    <AboutMe />
-    <Skills />
-    <Experience />
-    <Projects />
-	</main>
-  <Footer />
+    <Work />
+    <Career />
+    <Outro />
+  </main>
 </Layout>
+
+<script>
+  import '@/experience';
+</script>

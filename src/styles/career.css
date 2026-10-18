@@ -1,0 +1,166 @@
+@layer components {
+  .career .stage-slot {
+    height: 40svh;
+    min-height: 16rem;
+    margin-inline: var(--bleed);
+  }
+
+  .career [data-frame] {
+    inset: 12% 6% 14%;
+  }
+
+  .career-intro {
+    position: relative;
+    z-index: 3;
+  }
+
+  .js .career-intro {
+    opacity: calc(var(--career) * 3 - 2);
+  }
+
+  .js .career-content {
+    opacity: calc(var(--career) * 1.8 - 0.4);
+  }
+
+  .stage-index {
+    display: none;
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--color-ridge);
+  }
+
+  .stage-index button {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    min-height: var(--control);
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--color-ridge);
+    color: var(--color-haze);
+    text-align: left;
+    transition: color 0.2s;
+  }
+
+  .stage-index button:hover,
+  .stage-index button[aria-pressed='true'] {
+    color: var(--color-starlight);
+  }
+
+  .stage-index .company {
+    font-weight: 560;
+    letter-spacing: -0.015em;
+  }
+
+  .stage-index .years {
+    flex: none;
+  }
+
+  .stage-panel {
+    container-type: inline-size;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-ridge);
+  }
+
+  .stage-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stage-entry h3 {
+    margin-top: 0.8rem;
+    font-size: min(clamp(1.875rem, 3vw, 2.5rem), 100cqi / 4.8);
+    font-weight: 620;
+    letter-spacing: -0.05em;
+    line-height: 1.05;
+    overflow-wrap: break-word;
+  }
+
+  .stage-entry .role {
+    margin-top: 0.35rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    color: var(--color-lilac);
+  }
+
+  .stage-entry .summary {
+    margin-top: 0.9rem;
+    max-width: 32rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-haze);
+  }
+
+  .stage-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.1rem;
+    font-size: 0.8125rem;
+    color: var(--color-starlight);
+  }
+
+  .stage-tech li {
+    padding: 0.15rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--color-haze) 34%, transparent);
+    border-radius: 999px;
+  }
+
+  .stage-steps {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .js .stage-entry {
+    grid-area: 1 / 1;
+    visibility: hidden;
+  }
+
+  .js .stage-entry[data-active] {
+    visibility: visible;
+  }
+
+  @media (width >= 56.25rem) {
+    .career {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--panel-width);
+      grid-template-rows: minmax(0, 1fr) auto;
+      column-gap: clamp(2rem, 4.6vw, 5.5rem);
+    }
+
+    .career-intro {
+      grid-area: 2 / 1;
+      max-width: 30rem;
+    }
+
+    .career .stage-slot {
+      position: sticky;
+      top: 0;
+      grid-area: 1 / 1 / -1 / 2;
+      height: 100svh;
+      min-height: 0;
+      margin: calc(var(--screen-top) * -1) 0 calc(var(--screen-bottom) * -1)
+        var(--bleed);
+    }
+
+    .career [data-frame] {
+      inset: 10% 4% calc(var(--screen-bottom) + 8.5rem)
+        calc(var(--gutter) + 1.5rem);
+    }
+
+    .career-content {
+      grid-area: 1 / 2 / -1 / 3;
+      align-self: center;
+    }
+
+    .stage-panel {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+  }
+}

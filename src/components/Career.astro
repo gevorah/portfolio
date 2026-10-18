@@ -1,0 +1,128 @@
+---
+import { careerStages, categoryLabels, defaultStageId } from '@/data/career';
+import { constellation } from '@/experience/scene/looks';
+---
+
+<section
+  class="screen career"
+  id="experience"
+  aria-labelledby="career-title"
+  tabindex="-1"
+>
+  <div class="markers">
+    {careerStages.map((stage) => (
+      <button
+        type="button"
+        class="marker star-marker"
+        aria-label={`${stage.company}, ${stage.role}`}
+        data-star-marker={stage.id}
+        data-prefer={constellation[stage.id]?.label}
+        aria-pressed={stage.id === defaultStageId ? 'true' : 'false'}
+        data-offstage
+      >
+        <span class="marker-label" aria-hidden="true">
+          {stage.shortName ?? stage.company}
+        </span>
+      </button>
+    ))}
+  </div>
+
+  <div class="career-intro">
+    <h2 class="section-title" id="career-title">
+      Trace my path.
+    </h2>
+    <p class="section-lede">Select a star to explore a stage of my career.</p>
+  </div>
+
+  <div class="stage-slot" aria-hidden="true">
+    <div data-frame="career"></div>
+  </div>
+
+  <div class="career-content">
+    <ol class="stage-index">
+      {careerStages.map((stage) => (
+        <li>
+          <button
+            type="button"
+            data-stage-select={stage.id}
+            aria-pressed={stage.id === defaultStageId ? 'true' : 'false'}
+          >
+            <span class="company">{stage.company}</span>
+            <span class="years">{stage.period}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
+
+    <p class="sr-only" role="status" data-stage-status></p>
+
+    <div class="stage-panel">
+      <div class="stage-detail">
+        {careerStages.map((stage) => (
+          <article
+            class="stage-entry"
+            data-stage-detail={stage.id}
+            data-active={stage.id === defaultStageId ? '' : undefined}
+          >
+            <p class="stage-meta" style="--i:0">
+              <span>{categoryLabels[stage.category]}</span>
+              <span class="period">{stage.period}</span>
+            </p>
+            <h3 style="--i:1">{stage.company}</h3>
+            <p class="role" style="--i:2" data-role>
+              {stage.role}
+            </p>
+            <p class="summary" style="--i:3">
+              {stage.summary}
+            </p>
+            {stage.technologies.length > 0 && (
+              <ul
+                class="stage-tech"
+                style="--i:4"
+                aria-label="Technologies used"
+              >
+                {stage.technologies.map((technology) => (
+                  <li>{technology}</li>
+                ))}
+              </ul>
+            )}
+          </article>
+        ))}
+      </div>
+      <div class="steps stage-steps">
+        <button
+          type="button"
+          class="round-button"
+          data-stage-step="-1"
+          aria-label="Previous stage"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+          >
+            <path d="M10 3 5 8l5 5"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="round-button"
+          data-stage-step="1"
+          aria-label="Next stage"
+        >
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+          >
+            <path d="m6 3 5 5-5 5"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

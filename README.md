@@ -1,20 +1,25 @@
-# portfolio
+# gevorah
 
-A glimpse into my development journey showcased through a collection of projects.
+A glimpse into my development journey.
 
 ## Technologies
-- [Astro](https://astro.build/)
-- [Tailwind CSS](https://tailwindcss.com/)
 
-## Usage
-To run the application locally, make sure you have `Node.js v20+` installed. Follow these steps:
+- [Astro](https://astro.build/) — Structure and static generation.
+- [Three.js](https://threejs.org/) — Interactive universe and 3D experiences.
+- [GSAP](https://gsap.com/) — Animations and transitions.
+- TypeScript, ESLint, Prettier, Vitest, and Playwright.
 
-Install dependencies with:
+## Getting started
+
+Requires Node.js 24 and pnpm.
+
 ```bash
-yarn
+pnpm install
+pnpm dev
 ```
 
-Start the development server with:
+## Build
+
 ```bash
-yarn dev
+pnpm build
 ```

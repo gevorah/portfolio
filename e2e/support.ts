@@ -1,0 +1,211 @@
+import { expect, type Page } from '@playwright/test';
+
+declare global {
+  interface Window {
+    __draws: number;
+    __links: number;
+    __prevented: boolean[];
+    __experience: {
+      focused: boolean;
+      focusId: string | null;
+      focus: number;
+      zone: string;
+      stageId: string;
+      orbit: { yaw: number; pitch: number };
+    };
+    __universe: {
+      stats: { pixelRatio: number; mode: string; frames: number };
+      setOrbitTime(seconds: number): void;
+      inspect(): {
+        intruders: string[];
+        veils: Record<string, number>;
+        labels: Record<string, string>;
+        labelSizes: Record<string, { halfWidth: number; height: number }>;
+      };
+    };
+  }
+}
+
+export const VIEWPORTS = [
+  { width: 1440, height: 900 },
+  { width: 1024, height: 768 },
+  { width: 768, height: 1024 },
+  { width: 390, height: 844 },
+  { width: 320, height: 568 },
+];
+
+export async function open(page: Page, query = '') {
+  await page.goto(`/?stats${query}`);
+  await page.waitForSelector('#scene[data-ready]');
+}
+
+export async function scrollTo(page: Page, id: string) {
+  await page.evaluate(
+    (target) =>
+      document.getElementById(target)!.scrollIntoView({ behavior: 'instant' }),
+    id,
+  );
+  await page.waitForTimeout(250);
+}
+
+export const dispatchClick = (page: Page, selector: string) =>
+  page.locator(selector).evaluate((element: HTMLElement) => element.click());
+
+export async function pointerClick(page: Page, selector: string) {
+  const target = page.locator(selector);
+  await expect(target).toBeVisible();
+  const box = (await target.boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+export const selectWorld = (page: Page, id: string) =>
+  pointerClick(page, `[data-world-marker="${id}"]`);
+
+export const settled = (page: Page, target: 0 | 1) =>
+  page.waitForFunction((value) => {
+    const { focus, focused, focusId } = window.__experience;
+    return value === 1
+      ? focused && focus === 1
+      : !focused && focus === 0 && focusId === null;
+  }, target);
+
+export const focusedElement = (page: Page) =>
+  page.evaluate(() => {
+    const element = document.activeElement as HTMLElement;
+    return (
+      element.id ||
+      element.dataset.worldMarker ||
+      element.dataset.step ||
+      element.tagName
+    );
+  });
+
+export const sectionTop = (page: Page, id: string) =>
+  page.evaluate(
+    (target) =>
+      Math.round(
+        document.getElementById(target)!.getBoundingClientRect().top,
+      ) || 0,
+    id,
+  );
+
+export function countDrawCalls() {
+  window.__draws = 0;
+  const proto = WebGL2RenderingContext.prototype;
+  for (const name of [
+    'drawArrays',
+    'drawElements',
+    'drawArraysInstanced',
+    'drawElementsInstanced',
+  ] as const) {
+    const original = proto[name] as (...args: unknown[]) => void;
+    (proto as unknown as Record<string, unknown>)[name] = function (
+      this: WebGL2RenderingContext,
+      ...args: unknown[]
+    ) {
+      window.__draws += 1;
+      return original.apply(this, args);
+    };
+  }
+}
+
+export async function drawCallsDuring(page: Page, ms: number) {
+  await page.evaluate(() => (window.__draws = 0));
+  await page.waitForTimeout(ms);
+  return page.evaluate(() => window.__draws);
+}
+
+const LIT_LUMINANCE = 48;
+const GRID = { columns: 12, rows: 8 };
+
+export async function sampleScene(page: Page, selector: string) {
+  const overlay = await page.addStyleTag({
+    content:
+      '.site-main, .site-header, .waypoints { visibility: hidden !important; }',
+  });
+  const clip = await page.locator(selector).evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const x = Math.max(0, rect.left);
+    const y = Math.max(0, rect.top);
+    return {
+      x,
+      y,
+      width: Math.min(innerWidth, rect.right) - x,
+      height: Math.min(innerHeight, rect.bottom) - y,
+    };
+  });
+  const image = (await page.screenshot({ clip })).toString('base64');
+  await overlay.evaluate(
+    (style) =>
+      new Promise((resolve) => {
+        (style as Element).remove();
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }),
+  );
+  const sample = await page.evaluate(
+    async ([data, threshold, grid]) => {
+      const blob = await (await fetch(`data:image/png;base64,${data}`)).blob();
+      const bitmap = await createImageBitmap(blob);
+      const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+      const context = canvas.getContext('2d')!;
+      context.drawImage(bitmap, 0, 0);
+      const { data: pixels, width } = context.getImageData(
+        0,
+        0,
+        bitmap.width,
+        bitmap.height,
+      );
+      const cells = new Array<number>(grid.columns * grid.rows).fill(0);
+      let lit = 0;
+      let weight = 0;
+      let sumX = 0;
+      let sumY = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        const luminance =
+          0.2126 * pixels[index] +
+          0.7152 * pixels[index + 1] +
+          0.0722 * pixels[index + 2];
+        if (luminance <= threshold) continue;
+        const pixel = index / 4;
+        const column = Math.floor(((pixel % width) / width) * grid.columns);
+        const row = Math.floor(
+          (Math.floor(pixel / width) / bitmap.height) * grid.rows,
+        );
+        cells[row * grid.columns + column] += 1;
+        lit += 1;
+        weight += luminance;
+        sumX += (pixel % width) * luminance;
+        sumY += Math.floor(pixel / width) * luminance;
+      }
+      const cellArea = (bitmap.width * bitmap.height) / cells.length;
+      return {
+        coverage: lit / (bitmap.width * bitmap.height),
+        center: { x: sumX / weight, y: sumY / weight },
+        cells: cells.map((count) => count / cellArea),
+      };
+    },
+    [image, LIT_LUMINANCE, GRID] as const,
+  );
+  return {
+    coverage: sample.coverage,
+    cells: sample.cells,
+    center: { x: clip.x + sample.center.x, y: clip.y + sample.center.y },
+  };
+}
+
+export const sceneCoverage = async (page: Page, selector: string) =>
+  (await sampleScene(page, selector)).coverage;
+
+const OCCUPIED = 0.004;
+
+export function sceneDifference(a: number[], b: number[]) {
+  let either = 0;
+  let one = 0;
+  a.forEach((value, index) => {
+    const inA = value > OCCUPIED;
+    const inB = b[index] > OCCUPIED;
+    if (inA || inB) either += 1;
+    if (inA !== inB) one += 1;
+  });
+  return one / either;
+}

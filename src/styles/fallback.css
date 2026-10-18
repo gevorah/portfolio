@@ -1,0 +1,112 @@
+@layer states {
+  html:not(.js) .stage-slot,
+  .no-webgl .universe,
+  .no-webgl .markers,
+  .no-webgl .stage-slot {
+    display: none;
+  }
+
+  html:not(.js) .world-index,
+  .no-webgl .world-index {
+    display: block;
+  }
+
+  html:not(.js) .world-index button {
+    display: none;
+  }
+
+  html:not(.js) .world-index a {
+    display: flex;
+  }
+
+  html:not(.js) .world-detail {
+    scroll-margin-top: var(--screen-top);
+  }
+
+  html:not(.js) .world-detail + .world-detail {
+    margin-top: 3rem;
+  }
+
+  html:not(.js) .detail-controls {
+    display: none;
+  }
+
+  html:not(.js) .work-detail {
+    margin-top: 2.5rem;
+  }
+
+  .no-webgl .stage-index {
+    display: grid;
+  }
+
+  html:not(.js) .stage-steps {
+    display: none;
+  }
+
+  html:not(.js) .stage-entry + .stage-entry {
+    margin-top: 2.5rem;
+  }
+
+  :is(html:not(.js), .no-webgl)
+    :is(.work-content, .career-intro, .career-content) {
+    opacity: 1;
+  }
+
+  :is(html:not(.js), .no-webgl) :is(.work-detail, .career-content)::before {
+    content: none;
+  }
+
+  @media (width >= 56.25rem) {
+    :is(html:not(.js), .no-webgl) .work {
+      display: block;
+    }
+
+    :is(html:not(.js), .no-webgl) .career-content {
+      display: contents;
+    }
+
+    :is(html:not(.js), .no-webgl) :is(.work-content, .career) {
+      display: grid;
+      grid-template-columns: 5fr 6fr;
+      grid-template-areas:
+        'intro detail'
+        'index detail';
+      grid-template-rows: auto 1fr;
+      align-items: start;
+      gap: 0 4rem;
+    }
+
+    :is(html:not(.js), .no-webgl) .work-content {
+      width: 100%;
+      min-height: 0;
+    }
+
+    :is(html:not(.js), .no-webgl) :is(.work-prompt, .career-intro) {
+      grid-area: intro;
+      align-self: start;
+      justify-self: stretch;
+      max-width: none;
+    }
+
+    :is(html:not(.js), .no-webgl) .stage-index {
+      grid-area: index;
+    }
+
+    :is(html:not(.js), .no-webgl) :is(.work-detail, .stage-panel) {
+      grid-area: detail;
+      align-self: start;
+      justify-self: stretch;
+      width: auto;
+      margin-top: 0;
+    }
+
+    :is(html:not(.js), .no-webgl) .stage-panel {
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-ridge);
+    }
+
+    html:not(.js) .work-detail {
+      margin-top: 0;
+    }
+  }
+}

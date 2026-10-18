@@ -1,0 +1,52 @@
+---
+import { Image } from 'astro:assets';
+
+import avatar from '@/assets/avatar.png';
+import { profile } from '@/data/profile';
+---
+
+<header class="site-header">
+  <a
+    href="#universe"
+    class="brand"
+    aria-label={`${profile.handle}: back to the universe`}
+  >
+    <Image src={avatar} alt="" width={64} height={64} loading="eager" />
+    <span class="brand-name">{profile.handle}</span>
+  </a>
+  <nav class="site-nav" aria-label="Sections">
+    <a href="#universe" data-nav="hero" class="nav-optional">
+      Universe
+    </a>
+    <a href="#work" data-nav="work">
+      Work
+    </a>
+    <a href="#experience" data-nav="career">
+      Experience
+    </a>
+    <a href="#about" data-nav="about" class="nav-optional">
+      About
+    </a>
+    <a href="#contact" data-nav="contact" class="nav-optional">
+      Contact
+    </a>
+  </nav>
+</header>
+
+<nav class="waypoints" aria-label="Jump to section">
+  <a href="#universe" data-nav="hero" data-label="Universe">
+    <span class="sr-only">Universe</span>
+  </a>
+  <a href="#work" data-nav="work" data-label="Work">
+    <span class="sr-only">Work</span>
+  </a>
+  <a href="#experience" data-nav="career" data-label="Experience">
+    <span class="sr-only">Experience</span>
+  </a>
+  <a href="#about" data-nav="about" data-label="About">
+    <span class="sr-only">About</span>
+  </a>
+  <a href="#contact" data-nav="contact" data-label="Contact">
+    <span class="sr-only">Contact</span>
+  </a>
+</nav>

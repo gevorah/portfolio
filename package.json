@@ -3,34 +3,43 @@
   "private": true,
   "type": "module",
   "version": "0.0.1",
-  "packageManager": "yarn@4.1.0+sha256.81a00df816059803e6b5148acf03ce313cad36b7f6e5af6efa040a15981a6ffb",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
+    "check": "astro check",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
     "astro": "astro"
   },
+  "packageManager": "pnpm@12.11.2+sha512.25a51652a196785af5f28bda6dfe8dc582ebefa4ac1d180221ce1390231c5fb76637822ea4b6e4633ce74acdcb0a77f725af11bad38177fdeddaee818a955cb9",
   "dependencies": {
-    "@astrojs/check": "^0.5.2",
-    "@astrojs/react": "^3.0.10",
-    "@astrojs/tailwind": "^5.1.0",
-    "@fontsource-variable/jetbrains-mono": "^5.0.19",
-    "astro": "^4.3.5",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.0",
-    "framer-motion": "^11.0.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tailwind-merge": "^2.2.1",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3"
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "astro": "^7.3.8",
+    "gsap": "^3.15.0",
+    "sharp": "^0.35.5",
+    "three": "^0.186.1"
   },
   "devDependencies": {
-    "@types/react": "^18.2.55",
-    "@types/react-dom": "^18.2.19",
-    "prettier": "^3.2.5",
-    "prettier-plugin-astro": "^0.13.0",
-    "vite": "^5.1.1"
+    "@astrojs/check": "^0.9.10",
+    "@eslint/js": "^10.0.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@playwright/test": "^1.64.0",
+    "@types/three": "^0.186.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
   }
 }

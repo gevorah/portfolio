@@ -1,12 +1,14 @@
 ---
-import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/instrument-sans';
+import '@fontsource/instrument-serif/400-italic.css';
+import '@/styles/global.css';
 
 interface Props {
-  title: string
-  description?: string
+  title: string;
+  description: string;
 }
 
-const { title, description = '' } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
@@ -14,48 +16,24 @@ const { title, description = '' } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/png" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0e0c13" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/icon.png" />
     <title>{title}</title>
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      document.addEventListener('DOMContentLoaded', () => {
+        const root = document.documentElement;
+        if (root.dataset.experience === 'ready') return;
+        root.classList.remove('js');
+        console.error(
+          'Universe: the interactive layer did not start. Showing the static page.',
+        );
+      });
+    </script>
   </head>
   <body>
     <slot />
   </body>
 </html>
-<style is:global>
-  html {
-    color-scheme: light;
-    background: #f9f5d7;
-    color: #3c3836;
-    scroll-behavior: smooth;
-  }
-  html.dark {
-    color-scheme: dark;
-    background: #1d2021;
-    color: #ebdbb2;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-  }
-</style>
-<script is:inline>
-  const getThemePreference = () => {
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-      return localStorage.getItem('theme');
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  };
-
-  const isDarkMode = getThemePreference() === 'dark';
-  document.documentElement.classList[isDarkMode ? 'add' : 'remove']('dark');
- 
-  if (typeof localStorage !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  }
-</script>
